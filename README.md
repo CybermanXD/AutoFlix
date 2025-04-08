@@ -77,6 +77,20 @@ AutoFlix is a sleek, lightweight movie and TV show streaming frontend that integ
   
 ---
 
+## ⚠️ Disclaimer
+
+AutoFlix is a **personal project built purely for educational and experimental purposes**. This app:
+
+- Does **not host** or store any videos, media files, or content on its own servers.
+- Utilizes **freely available public APIs** and **iframe-based embeds** from third-party services.
+- Is **not affiliated** with any of the video providers (like `vidsrc`, `multiembed`, `autoembed`, or `embed.su`).
+- Does **not claim ownership** of any media accessed via embedded players.
+
+If you are a **rightful copyright owner**
+and object to any content being displayed via this app, please contact us and we will take the webapp down immediately.
+
+> This app was built just for fun using free tools found around the web.  
+> Please **support the filmmakers and creators** — watch, rent, or buy movies and TV shows legally.
 
 
 
