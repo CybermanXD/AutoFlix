@@ -74,6 +74,9 @@ AutoFlix is a sleek, lightweight movie and TV show streaming frontend that integ
 
 🔗 [View Live AutoFlix](https://auto-flix.onrender.com/)
 
+## 🌐 Live Demo
+
+🔗 <a href="https://auto-flix.onrender.com/" target="_blank" rel="noopener noreferrer">View Live AutoFlix</a>
 
   
 ---
