@@ -4,7 +4,7 @@ AutoFlix - A Simple Webapp
 
 # 🎬 AutoFlix
 
-AutoFlix is a sleek, lightweight movie and TV show streaming frontend that integrates multiple free embed servers and uses the OMDb API to fetch movie metadata. Designed to feel like a simplified Netflix clone, AutoFlix offers clean navigation, dynamic routing, and multiple server support for seamless playback.
+AutoFlix is a sleek, lightweight movie and TV show streaming frontend that integrates multiple free embed servers and uses the OMDb API to fetch movie metadata. Designed to feel like a simplified webapp, AutoFlix offers clean navigation, dynamic routing, and multiple server support for seamless playback.
 
  
 
