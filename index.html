@@ -1,0 +1,552 @@
+<!-- Deployed via Render -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fredericka+the+Great&display=swap" rel="stylesheet">
+
+  <meta charset="UTF-8">
+  <title>AutoFlix</title>
+  <!-- Use a Google Font similar to Netflix -->
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    /* Global Styles */
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Roboto', sans-serif;
+      background-color: #141414;
+      color: #fff;
+      line-height: 1.6;
+    }
+    a { color: #e50914; text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    button {
+      border: none; 
+      outline: none; 
+      cursor: pointer;
+      background: #e50914;
+      color: #fff;
+      padding: 10px 20px; 
+      font-size: 14px;
+      border-radius: 4px; 
+      transition: background 0.3s;
+    }
+    button:hover { background: #f40612; }
+
+    /* Header & Navigation */
+    header { 
+      background: #141414; 
+      padding: 20px; 
+      text-align: center; 
+      border-bottom: 1px solid #333; 
+    }
+    header h1 { 
+      font-size: 2.5rem; 
+      letter-spacing: 2px; 
+      cursor: pointer;
+      font-family: "Fredericka the Great", serif;
+    }
+    nav {
+      background: #141414; 
+      padding: 15px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 20px;
+      border-bottom: 1px solid #333;
+    }
+    /* Only Search button remains in navbar; no hover change */
+    nav button {
+      background: transparent;
+      border: none;
+      color: #fff;
+      font-size: 1.1rem;
+      padding: 8px 15px;
+      transition: none;
+    }
+    
+    /* Search Toggle placed in navbar, inline */
+    #searchToggle {
+      display: none;
+      margin-left: 2px;
+      text-align: center;
+    }
+    #searchToggle input {
+      padding: 12px 45px 12px 20px;
+      border: 1px solid #444;
+      border-radius: 10px;
+      background: #222;
+      color: #fff;
+      font-size: 1rem;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+    }
+    #searchToggle i {
+      margin-left: -35px;
+      cursor: pointer;
+      color: #e50914;
+    }
+    
+    /* Views */
+    .view {
+      display: none;
+      padding: 5px 20px 10px 20px;
+      max-width: 1200px;
+      margin: 0 auto;
+      animation: fadeIn 0.5s;
+    }
+    .active { display: block; }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+    /* Homepage Image Container (only visible on homepage) */
+    #homeImageContainer {
+      padding:  30px 80px;
+      text-align: center;
+      max-width: 80%;
+      margin: 0 auto;
+    }
+    #homeImageContainer img {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+
+    /* Movie Grid Styles (used in search results) */
+    .movie-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+      gap: 20px;
+      margin-top: 20px;
+    }
+    .movie-item {
+      background: #222;
+      padding: 10px;
+      border-radius: 4px;
+      transition: transform 0.3s, box-shadow 0.3s;
+      cursor: pointer;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.5);
+    }
+    .movie-item:hover {
+      transform: scale(1.05);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.8);
+    }
+    .movie-item img { width: 100%; border-radius: 4px; }
+    .movie-item p { margin-top: 10px; font-size: 0.9rem; text-align: center; }
+    /* Append release year below title in cards */
+    .movie-year {
+      font-size: 0.8rem;
+      color: #aaa;
+      text-align: center;
+      margin-top: 5px;
+    }
+
+    /* Section Headings */
+    .section-title {
+      font-size: 1.8rem;
+      margin-bottom: 10px;
+      padding-left: 5px;
+      padding-top: 8px;
+    }
+
+    /* Detail View */
+    #detailView {
+      max-width: 900px;
+      padding: 40px 20px;
+      margin: 0 auto;
+    }
+    #detailView img {
+      width: 100%;
+      max-width: 300px;
+      border-radius: 4px;
+      margin: 0 auto 20px;
+      display: block;
+    }
+    .detail-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  margin-top: 20px;
+}
+
+.detail-poster img {
+  width: 100%;
+  max-width: 300px;
+  height: auto;
+  border-radius: 8px;
+}
+
+.detail-poster {
+  flex: 1 1 300px;
+}
+
+.detail-info {
+  flex: 2 1 400px;
+}
+
+#detailInfo p {
+  margin: 8px 0;
+} 
+    #detailInfo h2 { margin-bottom: 10px; font-size: 2rem; }
+     
+    /* Action buttons container now uses flex with 20px gap */
+    #actionButtons {
+      display: flex;
+      gap: 20px;
+      justify-content: left;
+      margin: 20px 0;
+    }
+    
+    /* Episodes Section */
+    #episodesSection { margin-top: 30px; }
+    #episodesSection select {
+      width: 100%;
+      max-width: 200px;
+      padding: 10px;
+      margin-bottom: 15px;
+      background: #222;
+      color: #fff;
+      border: 1px solid #444;
+      border-radius: 4px;
+    }
+    #episodesSection ul { list-style: none; }
+    #episodesSection ul li {
+      padding: 12px;
+      background: #222;
+      margin-bottom: 10px;
+      border-radius: 4px;
+      transition: background 0.3s;
+      cursor: pointer;
+    }
+    #episodesSection ul li:hover { background: #333; }
+
+    /* Embed Viewer */
+    #embedViewerView { position: relative; padding-bottom: 20px; }
+    /* Embed header styled to match the iframe width */
+    #embedHeader {
+      padding: 10px;
+      text-align: center;
+      background: #222;
+      font-size: 1.2rem;
+      display: none;
+      width: 100%;
+      border-radius: 10px;
+    }
+    #embedFrame {
+      width: 100%;
+      height: calc(100vh - 140px);
+      border: none;
+    }
+
+    /* Pagination Styles */
+    .pagination {
+      display: flex;
+      justify-content: center;
+      margin-top: 30px;
+      gap: 15px;
+    }
+    .pagination button { padding: 10px 15px; font-size: 1rem; }
+
+    /* Responsive adjustments */
+    @media (max-width: 599px) {
+      header h1 { font-size: 2rem; }
+      nav { flex-direction: column; }
+      nav button { font-size: 1rem; margin-bottom: 10px; }
+      #searchToggle { margin: 10px auto; }
+      .view { padding: 20px 10px; }
+      #detailView img { max-width: 100%; }
+
+      #homeImageContainer {
+      padding: 10px 0px 10px 0px;
+      text-align: center;
+      max-width: 90%;
+      margin: 0 auto;
+    }
+
+    }
+    
+    /* Updated .episode-options for TV series with 20px gap */
+    .episode-options {
+      margin-top: 15px;
+      text-align: center;
+      display: flex;
+      gap: 20px;
+      justify-content: left;
+    }
+    
+    /* Back button on embed viewer positioned 25px below the iframe */
+    #embedViewerView button {
+      margin-top: 15px;
+    }
+
+
+.dropdown-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center; /* Optional: center vertically too */
+  margin: 2px 0;
+  width: 100%;
+}
+
+
+/* Mobile responsiveness */
+@media (max-width: 768px) {
+  .detail-container {
+    flex-direction: column;
+  }
+
+  .detail-poster,
+  .detail-info {
+    width: 100%;
+  }
+
+  #detailPoster {
+    max-width: 100%;
+  }
+}
+
+#serverSwitcher {
+  display: none;
+  padding: 12px 20px;
+  background-color: #121212;
+  color: #ffffff;
+  border: 1px solid #444;
+  border-radius: 8px;
+  font-size: 18px;
+  margin: 12px 0;
+  appearance: none;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  max-width: 280px;
+
+  /* BIG arrow icon */
+  background-image: url("data:image/svg+xml,%3Csvg fill='white' height='32' viewBox='0 0 24 24' width='32' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M7 10l5 5 5-5z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 16px center;
+  background-size: 24px;
+  padding-right: 52px;
+}
+
+#serverSwitcher:hover {
+  background-color: #1f1f1f;
+}
+
+#serverSwitcher:focus {
+  outline: none;
+  box-shadow: 0 0 8px rgba(255, 255, 255, 0.3);
+}
+
+@media (max-width: 768px) {
+  #serverSwitcher {
+    font-size: 17px;
+    padding: 11px 18px;
+    padding-right: 52px;
+    max-width: 100%;
+  }
+}
+
+
+  </style>
+
+<style>
+  .search-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    border-radius: 6px;
+    overflow: hidden;
+     
+  }
+
+  #searchInput {
+    border: none;
+    padding: 10px 12px;
+    outline: none;
+    font-size: 14px;
+    width: 220px;
+  }
+
+  .search-icon {
+    background-color: #E50914; /* Netflix-red vibe */
+    color: white;
+    border: none;
+    padding: 10px 12px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.2s ease;
+  }
+
+  .search-icon:hover {
+    background-color: #bf0810;
+  }
+
+  .search-icon svg {
+    width: 18px;
+    height: 18px;
+    stroke: white;
+  }
+
+
+.watch-header-bar {
+  background-color: #141414;
+  color: #ffffff;
+  padding: 10px 20px;
+  font-size: 1rem;
+  font-weight: 500;
+  position: relative; /* or 'fixed' for sticky */
+  text-align: center;
+  z-index: 10;
+  width: 100%;
+   
+  font-family: "Fredericka the Great", serif;
+  letter-spacing: 1.2px;
+   
+}
+
+/* Footer */
+footer {
+  background-color: #141414;
+  color: #aaa;
+  text-align: center;
+  padding: 15px 0;
+  font-size: 0.85rem;
+  border-top: 1px solid #333; /* small grey border */
+  margin-top: 40px;
+  width: 100%;
+}
+
+
+</style>
+
+
+</head>
+<body>
+  <!-- Main layout starts here -->
+ 
+ <script src="script.js"></script>
+<script>
+  document.getElementById("currentYear").textContent = new Date().getFullYear();
+</script>
+
+  <header>
+    <!-- Logo now clickable to return to homepage -->
+    <h1 onclick="switchView('homeView');">AutoFlix</h1>
+  </header>
+  <nav>
+  
+
+  <div id="searchToggle" style="display: inline-block;">
+    <div class="search-wrapper">
+      <input 
+        type="text" 
+        id="searchInput" 
+        placeholder="Enter movie/tv series name"
+        onkeypress="if(event.key==='Enter'){ performSearch(1); }">
+      
+      <button class="search-icon" onclick="performSearch(1)" aria-label="Search">
+        <!-- Clean modern search SVG -->
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+             stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+             class="feather feather-search">
+          <circle cx="11" cy="11" r="8"></circle>
+          <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+        </svg>
+      </button>
+    </div>
+  </div>
+</nav>
+
+  <!-- Home View - Clean Homepage with only Logo, Search Box, and Homepage Image -->
+  <div id="homeView" class="view active">
+    <div id="homeImageContainer">
+      <img src="https://i.ibb.co/Pz02gXv6/Free-TV-Show-Sites.jpg" alt="Free-TV-Show-Sites" border="0">
+    </div>
+  </div>
+
+  <!-- Search Results View -->
+  <div id="searchView" class="view">
+     
+    <h2 class="section-title" id="searchHeader">Search Results</h2>
+    <div id="searchResults" class="movie-grid"></div>
+    <div class="pagination">
+      <button id="prevPage" onclick="changeSearchPage(-1)">Previous</button>
+      <button id="nextPage" onclick="changeSearchPage(1)">Next</button>
+    </div>
+  </div>
+
+  <!-- Detail View -->
+<div id="detailView" class="view">
+   
+
+  <!-- Two-column responsive layout -->
+  <div class="detail-container">
+    <!-- Poster (Left Column) -->
+    <div class="detail-poster">
+      <img id="detailPoster" src="" alt="Poster">
+    </div>
+
+    <!-- Info (Right Column) -->
+    <div id="detailInfo" class="detail-info">
+      <h2 id="detailTitle"></h2>
+      <p><strong>Genre:</strong> <span id="detailGenre"></span></p>
+      <p><strong>Year:</strong> <span id="detailYear"></span></p>
+      <p><strong>Country:</strong> <span id="detailCountry"></span></p>
+      <p><strong>Actors:</strong> <span id="detailActors"></span></p>
+      <p><strong>Synopsis:</strong> <span id="detailPlot"></span></p>
+      <p id="detailRating"></p>
+
+      <!-- Action buttons for movies (if not a TV series) -->
+      <div id="actionButtons"></div>
+    </div>
+  </div>
+
+  <!-- Episodes Section for TV Series -->
+  <div id="episodesSection" style="display:none;">
+    <label for="seasonSelect">Select Season: </label>
+    <select id="seasonSelect" onchange="seasonChanged()"></select>
+    <ul id="episodesList"></ul>
+  </div>
+</div>
+
+
+  <!-- Embed Viewer View -->
+  <div id="embedViewerView" class="view">
+    
+    <!-- Embed header displayed above the iframe -->
+   <div id="embedHeaderBar" class="watch-header-bar" style="display: block;">
+  <span id="embedHeader"></span>
+</div>
+
+    <div class="dropdown-wrapper">
+  <select id="serverSwitcher" onchange="switchServer(this.value)">
+    <option value="vidsrc">vidsrc.cc</option>
+    <option value="embed">embed.su</option>
+    <option value="autoembed">autoembed</option>
+
+    <option value="2embed">2embed</option>
+  </select>
+</div>
+
+
+
+
+
+
+    <!-- Embed iframe comes next -->
+    <iframe id="embedFrame" allow="fullscreen"></iframe>
+    <!-- Back button placed below the iframe -->
+    
+  </div>
+
+  <!-- Include Font Awesome for search icon -->
+
+  <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+<footer>
+  © 2025 — All Rights Reserved.
+</footer>
+
+</body>
+</html>

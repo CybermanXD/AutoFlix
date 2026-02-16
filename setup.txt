@@ -1,0 +1,46 @@
+Render Deployment Setup (Static Site)
+====================================
+
+Overview
+--------
+This project looks like a static site (index.html + script.js). Render can host it as a Static Site with no build step.
+
+Prerequisites
+-------------
+1) GitHub/GitLab/Bitbucket account with this repo pushed.
+2) A Render account (https://render.com).
+
+Steps
+-----
+1) Push the repository to your Git provider.
+   - Ensure the root contains index.html and script.js.
+
+2) Create a new Static Site on Render.
+   - Log in to Render.
+   - Click "New +" → "Static Site".
+   - Select the Git provider and connect the repository.
+
+3) Configure the Static Site.
+   - Name: Autoflix (or any name you prefer)
+   - Branch: main (or your default branch)
+   - Build Command: (leave blank)
+   - Publish Directory: .
+     (This tells Render to serve files from the repo root.)
+
+4) Deploy.
+   - Click "Create Static Site".
+   - Render will deploy and give you a URL.
+
+5) Verify.
+   - Open the Render URL and confirm the site loads correctly.
+
+Optional: Custom Domain
+-----------------------
+1) Go to the Static Site settings in Render.
+2) Add your custom domain and follow DNS instructions.
+
+Notes
+-----
+- If you later add a build step (e.g., bundler), update Build Command and Publish Directory.
+- For client-side routing (SPA), enable "Rewrite all to /index.html" in Render settings if needed.
+# Deployed via Render

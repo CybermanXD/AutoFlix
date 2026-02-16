@@ -1,0 +1,15 @@
+image: node:18
+
+pipelines:
+  default:
+    - step:
+        name: Build and Replace API Key
+        script:
+          - apt-get update && apt-get install -y gettext
+          - mkdir -p dist
+          - envsubst < script.js > dist/script.js
+          # Uncomment and update the line below if you have static assets to copy:
+          # - cp -r your_static_folder/* dist/
+        artifacts:
+          - dist/** 
+# Deployed via Render
