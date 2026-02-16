@@ -1,3 +1,5 @@
+# AutoFlix: comment added
+# Task note: single comment added per file
 image: node:18
 
 pipelines:
