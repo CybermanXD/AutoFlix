@@ -1,0 +1,83 @@
+Render Deployment (Web Service with Docker)
+=========================================
+
+This repo is a static site (index.html + script.js). Render’s Static Site is simpler,
+but if you want to deploy it as a Web Service, use Docker as shown below.
+
+Generic Render Build/Setup (Any Repo)
+------------------------------------
+Use these steps if you just need the general Render setup flow (no log analysis):
+
+1) Choose service type
+   - Static Site: best for plain HTML/CSS/JS.
+   - Web Service: use when you need a server/runtime or Docker.
+
+2) Connect your repository
+   - Render → “New +” → select service type.
+   - Connect Git provider and pick the repo/branch.
+
+3) Configure build settings
+   - Static Site:
+     - Build Command: leave blank (or your build command if needed).
+     - Publish Directory: the folder with built assets (e.g., ., dist, build).
+   - Web Service (Docker):
+     - Runtime: Docker
+     - Dockerfile Path: ./Dockerfile
+     - Docker Build Context: .
+     - Start Command: leave blank if Dockerfile handles it.
+
+4) Environment variables
+   - Add any required keys (API_URL, etc.) in Environment Variables.
+
+5) Deploy and verify
+   - Click “Create …” and wait for the build to finish.
+   - Open the Render URL to confirm the app loads.
+
+Prerequisites
+-------------
+1) Push this repo to GitHub/GitLab/Bitbucket.
+2) Create a Render account: https://render.com
+
+Step 1: Add a Dockerfile
+------------------------
+Create a file named Dockerfile at the repo root with this content:
+
+  FROM nginx:alpine
+  COPY . /usr/share/nginx/html
+  EXPOSE 80
+
+Commit and push the Dockerfile.
+
+Step 2: Create a Render Web Service
+-----------------------------------
+1) In Render, click “New +” → “Web Service”.
+2) Connect your Git provider and select this repo.
+
+Step 3: Configure the service
+-----------------------------
+Use the following settings:
+1) Name: autoflix (or your preferred name)
+2) Runtime: Docker
+3) Branch: main (or your default branch)
+4) Region: choose a nearby region
+5) Root Directory: .
+6) Dockerfile Path: ./Dockerfile
+7) Instance Type: Free (or any paid plan)
+8) Environment Variables: none required
+
+Step 4: Deploy
+--------------
+1) Click “Create Web Service”.
+2) Wait for the build/deploy to finish.
+3) Open the Render URL to confirm the site loads.
+
+Optional: Static Site (Recommended)
+-----------------------------------
+If you don’t need a Web Service, use Render “Static Site” instead:
+1) Build Command: (leave blank)
+2) Publish Directory: .
+
+Notes
+-----
+- If you later add a build step, update the Dockerfile accordingly.
+- For SPA routing, configure a rewrite to /index.html in Render if needed.
