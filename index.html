@@ -131,6 +131,10 @@
       gap: 20px;
       margin-top: 20px;
     }
+
+    #similarResults.movie-grid {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
     .movie-item {
       background: #222;
       padding: 10px;
@@ -140,6 +144,7 @@
       box-shadow: 0 2px 6px rgba(0,0,0,0.5);
     }
     .movie-item:hover {
+      background: #650a0f;
       transform: scale(1.05);
       box-shadow: 0 4px 12px rgba(0,0,0,0.8);
     }
@@ -158,7 +163,30 @@
       font-size: 1.8rem;
       margin-bottom: 10px;
       padding-left: 5px;
-      padding-top: 8px;
+       
+    }
+
+    .tab-header {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      margin: 12px 0 10px;
+      padding-left: 5px;
+    }
+
+    .tab-button {
+      background: #e50914;
+      color: #fff;
+      border: 1px solid #e50914;
+      padding: 8px 14px;
+      border-radius: 999px;
+      font-size: 0.95rem;
+      cursor: pointer;
+    }
+
+    .tab-button.active {
+      background: #1f1f1f;
+      border-color: #333;
     }
 
     /* Detail View */
@@ -173,6 +201,21 @@
       border-radius: 4px;
       margin: 0 auto 20px;
       display: block;
+    }
+
+    #similarSection {
+      margin-top: 30px;
+      background: #1b1b1b;
+      border: 1px solid #2a2a2a;
+      border-radius: 12px;
+      padding: 16px 18px 22px;
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.35);
+    }
+
+    #similarSection .section-title {
+      margin-bottom: 6px;
+      padding-left: 0;
+      font-family: "Fredericka the Great", serif;
     }
     .detail-container {
   display: flex;
@@ -256,6 +299,10 @@
       justify-content: center;
       margin-top: 30px;
       gap: 15px;
+    }
+
+    .home-pagination .page-button.active {
+      background: #bf0810;
     }
 
     @media (max-width: 600px) {
@@ -767,8 +814,22 @@ footer {
 
   <!-- Home View - Clean Homepage with only Logo, Search Box, and Homepage Image -->
   <div id="homeView" class="view active">
-    <div id="homeImageContainer">
-      <img src="https://i.ibb.co/Pz02gXv6/Free-TV-Show-Sites.jpg" alt="Free-TV-Show-Sites" border="0">
+     
+    <div id="homeLatestSection">
+      <div class="tab-header">
+        <button class="tab-button active" type="button" onclick="setHomeTab('shows')">Latest TV Shows</button>
+        <button class="tab-button" type="button" onclick="setHomeTab('movies')">Latest Movies</button>
+      </div>
+      <div id="homeLoading" class="episode-loading" aria-hidden="true"></div>
+      <div id="latestResults" class="movie-grid"></div>
+      <div class="pagination home-pagination">
+        <button id="homePrevPage" onclick="changeHomePage(-1)">Previous</button>
+        <button class="page-button" onclick="goHomePage(1)">1</button>
+        <button class="page-button" onclick="goHomePage(2)">2</button>
+        <button class="page-button" onclick="goHomePage(3)">3</button>
+        <button class="page-button" onclick="goHomePage(4)">4</button>
+        <button id="homeNextPage" onclick="changeHomePage(1)">Next</button>
+      </div>
     </div>
   </div>
 
@@ -814,6 +875,11 @@ footer {
     <label for="seasonSelect">Select Season: </label>
     <select id="seasonSelect" onchange="seasonChanged()"></select>
     <ul id="episodesList"></ul>
+  </div>
+
+  <div id="similarSection">
+    <h2 class="section-title">Similar Titles</h2>
+    <div id="similarResults" class="movie-grid"></div>
   </div>
 </div>
 

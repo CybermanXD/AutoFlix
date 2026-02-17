@@ -1,3 +1,13 @@
+const TMDB_API_KEY = "8c5107580c5a36557d7c01b6f920c344";
+const TMDB_API_BASE = "https://api.themoviedb.org/3";
+const TMDB_IMAGE_BASE = "https://image.tmdb.org/t/p/w342";
+const HOME_TAB_DEFAULT = 'shows';
+const HOME_PAGE_SIZE = 0x12;
+const HOME_TOTAL_PAGES = 0x4;
+let latestMoviesCache = {};
+let latestShowsCache = {};
+let currentHomeTab = HOME_TAB_DEFAULT;
+let currentHomePage = 0x1;
 let currentMovieData = {};
 let currentEmbedURL = '';
 let currentSearchKeyword = '';
@@ -33,33 +43,38 @@ function performSearch(_0x555fed = 0x1) {
 function searchMovies(_0x2550f3, _0x3bd1a3) {
   const _0x4a4ef3 = document.getElementById("searchResults");
   _0x4a4ef3.innerHTML = "<p>Searching...</p>";
-  fetch("https://www.omdbapi.com/?apikey=45e48b11&s=" + encodeURIComponent(_0x2550f3) + '&page=' + _0x3bd1a3).then(_0xcb0b4f => _0xcb0b4f.json()).then(_0x46355f => {
+  fetch(TMDB_API_BASE + "/search/multi?api_key=" + TMDB_API_KEY + "&query=" + encodeURIComponent(_0x2550f3) + "&page=" + _0x3bd1a3).then(_0xcb0b4f => _0xcb0b4f.json()).then(_0x46355f => {
     _0x4a4ef3.innerHTML = '';
     document.getElementById('searchHeader').textContent = "Search Results for \"" + _0x2550f3 + "\"";
-    if (_0x46355f.Response === "True") {
-      totalSearchResults = parseInt(_0x46355f.totalResults);
-      _0x46355f.Search.forEach(_0x3f3267 => {
-        let _0x413d5e = document.createElement("div");
-        _0x413d5e.className = "movie-item";
-        _0x413d5e.onclick = () => {
-          showMovieDetails(_0x3f3267.imdbID);
-        };
-        if (_0x3f3267.Poster && _0x3f3267.Poster !== 'N/A') {
-          let _0x3ea995 = document.createElement("img");
-          _0x3ea995.src = _0x3f3267.Poster;
-          _0x3ea995.alt = _0x3f3267.Title;
-          _0x413d5e.appendChild(_0x3ea995);
+    if (_0x46355f && _0x46355f.results && _0x46355f.results.length > 0x0) {
+      totalSearchResults = parseInt(_0x46355f.total_results || 0x0);
+      const _0x3f3267 = _0x46355f.results.filter(_0x5d1b4d => _0x5d1b4d.media_type === 'movie' || _0x5d1b4d.media_type === 'tv');
+      const _0x5f7f6c = _0x3f3267.map(_0x5c4d7e => {
+        const _0x3c82b1 = _0x5c4d7e.media_type === 'tv' ? 'tv' : 'movie';
+        return fetch(TMDB_API_BASE + "/" + _0x3c82b1 + "/" + _0x5c4d7e.id + "/external_ids?api_key=" + TMDB_API_KEY).then(_0x1a6ad9 => _0x1a6ad9.json()).then(_0x2cbb55 => {
+          if (!_0x2cbb55 || !_0x2cbb55.imdb_id) {
+            return null;
+          }
+          return {
+            'Title': _0x3c82b1 === 'tv' ? _0x5c4d7e.name : _0x5c4d7e.title,
+            'Year': (_0x3c82b1 === 'tv' ? _0x5c4d7e.first_air_date : _0x5c4d7e.release_date || '').split('-')[0x0] || 'N/A',
+            'Poster': _0x5c4d7e.poster_path ? TMDB_IMAGE_BASE + _0x5c4d7e.poster_path : '',
+            'imdbID': _0x2cbb55.imdb_id
+          };
+        })['catch'](() => null);
+      });
+      Promise.all(_0x5f7f6c).then(_0x1f1e2e => {
+        const _0x5e4cd9 = _0x1f1e2e.filter(Boolean);
+        if (_0x5e4cd9.length === 0x0) {
+          _0x4a4ef3.innerHTML = "<p>No results found.</p>";
+        } else {
+          _0x5e4cd9.forEach(_0x29dd33 => {
+            _0x4a4ef3.appendChild(buildMovieCard(_0x29dd33));
+          });
         }
-        let _0x494b67 = document.createElement('p');
-        _0x494b67.textContent = _0x3f3267.Title;
-        _0x413d5e.appendChild(_0x494b67);
-        let _0x4c4af3 = document.createElement('p');
-        _0x4c4af3.className = 'movie-year';
-        _0x4c4af3.textContent = "Year: " + _0x3f3267.Year;
-        _0x413d5e.appendChild(_0x4c4af3);
-        _0x4a4ef3.appendChild(_0x413d5e);
       });
     } else {
+      totalSearchResults = 0x0;
       _0x4a4ef3.innerHTML = "<p>No results found.</p>";
     }
     updateSearchPagination();
@@ -73,6 +88,212 @@ function searchMovies(_0x2550f3, _0x3bd1a3) {
     console.error(_0x23184b);
     _0x4a4ef3.innerHTML = "<p>Error searching movies.</p>";
   });
+}
+
+function buildMovieCard(_0x29dd33) {
+  const _0x50d7cd = document.createElement('div');
+  _0x50d7cd.className = "movie-item";
+  _0x50d7cd.onclick = () => {
+    showMovieDetails(_0x29dd33.imdbID);
+  };
+  if (_0x29dd33.Poster && _0x29dd33.Poster !== 'N/A') {
+    let _0x1f40a1 = document.createElement("img");
+    _0x1f40a1.src = _0x29dd33.Poster;
+    _0x1f40a1.alt = _0x29dd33.Title;
+    _0x50d7cd.appendChild(_0x1f40a1);
+  }
+  let _0x2bdf5c = document.createElement('p');
+  _0x2bdf5c.textContent = _0x29dd33.Title;
+  _0x50d7cd.appendChild(_0x2bdf5c);
+  let _0x24c4c6 = document.createElement('p');
+  _0x24c4c6.className = 'movie-year';
+  _0x24c4c6.textContent = "Year: " + _0x29dd33.Year;
+  _0x50d7cd.appendChild(_0x24c4c6);
+  return _0x50d7cd;
+}
+
+function setHomeTab(_0x7d90a1) {
+  currentHomeTab = _0x7d90a1;
+  currentHomePage = 0x1;
+  const _0x3fb529 = document.querySelectorAll('.tab-button');
+  _0x3fb529.forEach(_0x2c968a => {
+    _0x2c968a.classList.remove('active');
+  });
+  const _0x535d19 = _0x7d90a1 === 'shows' ? 0x1 : 0x0;
+  if (_0x3fb529[_0x535d19]) {
+    _0x3fb529[_0x535d19].classList.add('active');
+  }
+  loadHomeTabPage();
+}
+
+function renderHomeTab() {
+  const _0x59a782 = document.getElementById("latestResults");
+  if (!_0x59a782) {
+    return;
+  }
+  setHomeLoading(false);
+  const _0x11a38a = currentHomeTab === 'shows' ? latestShowsCache[currentHomePage] : latestMoviesCache[currentHomePage];
+  _0x59a782.innerHTML = '';
+  if (!_0x11a38a || _0x11a38a.length === 0x0) {
+    _0x59a782.innerHTML = "<p>No items found.</p>";
+    return;
+  }
+  _0x11a38a.forEach(_0x24c9fa => {
+    _0x59a782.appendChild(buildMovieCard(_0x24c9fa));
+  });
+  updateHomePagination();
+}
+
+function updateHomePagination() {
+  const _0x21b6d5 = document.getElementById('homePrevPage');
+  const _0x2090c4 = document.getElementById('homeNextPage');
+  if (_0x21b6d5) {
+    _0x21b6d5.disabled = currentHomePage <= 0x1;
+  }
+  if (_0x2090c4) {
+    _0x2090c4.disabled = currentHomePage >= HOME_TOTAL_PAGES;
+  }
+  const _0x51d1f2 = document.querySelectorAll('.home-pagination .page-button');
+  _0x51d1f2.forEach((_0x4cd2fe, _0x2b5e6a) => {
+    if (_0x2b5e6a + 0x1 === currentHomePage) {
+      _0x4cd2fe.classList.add('active');
+    } else {
+      _0x4cd2fe.classList.remove('active');
+    }
+  });
+}
+
+function changeHomePage(_0x1f0f6d) {
+  const _0x2c5a4f = currentHomePage + _0x1f0f6d;
+  goHomePage(_0x2c5a4f);
+}
+
+function goHomePage(_0x361e31) {
+  const _0x25b0a4 = Number(_0x361e31);
+  if (_0x25b0a4 < 0x1 || _0x25b0a4 > HOME_TOTAL_PAGES) {
+    return;
+  }
+  currentHomePage = _0x25b0a4;
+  loadHomeTabPage();
+}
+
+function loadHomeTabPage() {
+  if (currentHomeTab === 'shows') {
+    loadLatestShows(currentHomePage);
+  } else {
+    loadLatestMovies(currentHomePage);
+  }
+}
+
+function loadLatestMovies(_0x3f5c44 = 0x1) {
+  const _0x1aef21 = document.getElementById("latestResults");
+  if (!_0x1aef21) {
+    return;
+  }
+  if (latestMoviesCache[_0x3f5c44]) {
+    renderHomeTab();
+    return;
+  }
+  if (currentHomeTab === 'movies') {
+    _0x1aef21.innerHTML = '';
+    setHomeLoading(true);
+  }
+  fetch(TMDB_API_BASE + "/trending/movie/week?api_key=" + TMDB_API_KEY + "&page=" + _0x3f5c44).then(_0x3eb28c => _0x3eb28c.json()).then(_0x2d2d1b => {
+    if (!_0x2d2d1b || !_0x2d2d1b.results || _0x2d2d1b.results.length === 0x0) {
+      latestMoviesCache[_0x3f5c44] = [];
+      if (currentHomeTab === 'movies') {
+        setHomeLoading(false);
+        _0x1aef21.innerHTML = "<p>No movies found.</p>";
+      }
+      return;
+    }
+    const _0x3a43f2 = _0x2d2d1b.results.slice(0x0, HOME_PAGE_SIZE);
+    const _0x4fb3d8 = _0x3a43f2.map(_0x4d9b39 => {
+      return fetch(TMDB_API_BASE + "/movie/" + _0x4d9b39.id + "/external_ids?api_key=" + TMDB_API_KEY).then(_0x458e15 => _0x458e15.json()).then(_0x5318d8 => {
+        if (!_0x5318d8 || !_0x5318d8.imdb_id) {
+          return null;
+        }
+        return {
+          'Title': _0x4d9b39.title,
+          'Year': (_0x4d9b39.release_date || '').split('-')[0x0] || 'N/A',
+          'Poster': _0x4d9b39.poster_path ? TMDB_IMAGE_BASE + _0x4d9b39.poster_path : '',
+          'imdbID': _0x5318d8.imdb_id
+        };
+      })['catch'](() => null);
+    });
+    Promise.all(_0x4fb3d8).then(_0x2d7e8a => {
+      latestMoviesCache[_0x3f5c44] = _0x2d7e8a.filter(Boolean);
+      if (currentHomeTab === 'movies') {
+        renderHomeTab();
+      }
+    });
+  })['catch'](_0x230f2c => {
+    console.error(_0x230f2c);
+    latestMoviesCache[_0x3f5c44] = [];
+    if (currentHomeTab === 'movies') {
+      setHomeLoading(false);
+      _0x1aef21.innerHTML = "<p>Error loading latest movies.</p>";
+    }
+  });
+}
+
+function loadLatestShows(_0x1c1d6d = 0x1) {
+  const _0x3d76d3 = document.getElementById("latestResults");
+  if (!_0x3d76d3) {
+    return;
+  }
+  if (latestShowsCache[_0x1c1d6d]) {
+    renderHomeTab();
+    return;
+  }
+  if (currentHomeTab === 'shows') {
+    _0x3d76d3.innerHTML = '';
+    setHomeLoading(true);
+  }
+  fetch(TMDB_API_BASE + "/trending/tv/week?api_key=" + TMDB_API_KEY + "&page=" + _0x1c1d6d).then(_0x2b6e98 => _0x2b6e98.json()).then(_0x152278 => {
+    if (!_0x152278 || !_0x152278.results || _0x152278.results.length === 0x0) {
+      latestShowsCache[_0x1c1d6d] = [];
+      if (currentHomeTab === 'shows') {
+        setHomeLoading(false);
+        _0x3d76d3.innerHTML = "<p>No TV shows found.</p>";
+      }
+      return;
+    }
+    const _0x4f9ed8 = _0x152278.results.slice(0x0, HOME_PAGE_SIZE);
+    const _0x3b2f2f = _0x4f9ed8.map(_0x2e5e2c => {
+      return fetch(TMDB_API_BASE + "/tv/" + _0x2e5e2c.id + "/external_ids?api_key=" + TMDB_API_KEY).then(_0x4922bf => _0x4922bf.json()).then(_0x2f26f3 => {
+        if (!_0x2f26f3 || !_0x2f26f3.imdb_id) {
+          return null;
+        }
+        return {
+          'Title': _0x2e5e2c.name,
+          'Year': (_0x2e5e2c.first_air_date || '').split('-')[0x0] || 'N/A',
+          'Poster': _0x2e5e2c.poster_path ? TMDB_IMAGE_BASE + _0x2e5e2c.poster_path : '',
+          'imdbID': _0x2f26f3.imdb_id
+        };
+      })['catch'](() => null);
+    });
+    Promise.all(_0x3b2f2f).then(_0x1a7ed6 => {
+      latestShowsCache[_0x1c1d6d] = _0x1a7ed6.filter(Boolean);
+      if (currentHomeTab === 'shows') {
+        renderHomeTab();
+      }
+    });
+  })['catch'](_0x5f3dd0 => {
+    console.error(_0x5f3dd0);
+    latestShowsCache[_0x1c1d6d] = [];
+    if (currentHomeTab === 'shows') {
+      setHomeLoading(false);
+      _0x3d76d3.innerHTML = "<p>Error loading TV shows.</p>";
+    }
+  });
+}
+
+function setHomeLoading(_0x182112) {
+  const _0x3b6f05 = document.getElementById('homeLoading');
+  if (_0x3b6f05) {
+    _0x3b6f05.style.display = _0x182112 ? 'block' : 'none';
+  }
 }
 function updateSearchPagination() {
   const _0x4a1feb = document.getElementById('prevPage');
@@ -126,6 +347,7 @@ function showMovieDetails(_0x24629a, _0x459565 = true, _0x5ece73 = 0x1) {
     } else {
       document.getElementById('episodesSection').style.display = "none";
     }
+    loadSimilarTitles(_0x37197d);
     if (currentOpenOptions) {
       currentOpenOptions.remove();
       currentOpenOptions = null;
@@ -144,6 +366,64 @@ function showMovieDetails(_0x24629a, _0x459565 = true, _0x5ece73 = 0x1) {
     switchView("detailView", false);
   })["catch"](_0x34b323 => {
     console.error(_0x34b323);
+  });
+}
+
+function loadSimilarTitles(_0x5c4a25) {
+  const _0x39a6db = document.getElementById('similarResults');
+  const _0x17522d = document.getElementById('similarSection');
+  if (!_0x39a6db || !_0x17522d || !_0x5c4a25) {
+    return;
+  }
+  _0x39a6db.innerHTML = "<p>Loading similar titles...</p>";
+  const _0x3e82c4 = _0x5c4a25.Type && _0x5c4a25.Type.toLowerCase() === 'series' ? 'tv' : 'movie';
+  const _0x4e93e0 = _0x5c4a25.imdbID;
+  if (!_0x4e93e0) {
+    _0x39a6db.innerHTML = "<p>No similar titles found.</p>";
+    return;
+  }
+  fetch(TMDB_API_BASE + "/find/" + _0x4e93e0 + "?api_key=" + TMDB_API_KEY + "&external_source=imdb_id").then(_0x3c22e0 => _0x3c22e0.json()).then(_0x55b0c1 => {
+    const _0x2c7f2a = _0x3e82c4 === 'tv' ? _0x55b0c1.tv_results : _0x55b0c1.movie_results;
+    if (!_0x2c7f2a || _0x2c7f2a.length === 0x0) {
+      _0x39a6db.innerHTML = "<p>No similar titles found.</p>";
+      return;
+    }
+    const _0x2f1084 = _0x2c7f2a[0x0].id;
+    return fetch(TMDB_API_BASE + "/" + _0x3e82c4 + "/" + _0x2f1084 + "/recommendations?api_key=" + TMDB_API_KEY).then(_0x8f0c7 => _0x8f0c7.json()).then(_0x8d64c5 => {
+      if (!_0x8d64c5 || !_0x8d64c5.results || _0x8d64c5.results.length === 0x0) {
+        _0x39a6db.innerHTML = "<p>No similar titles found.</p>";
+        return;
+      }
+      const _0x7a0d62 = _0x8d64c5.results.slice(0x0, 0xc);
+      const _0x373ea4 = _0x7a0d62.map(_0x4b30c0 => {
+        const _0x1b5c9e = _0x3e82c4 === 'tv' ? 'tv' : 'movie';
+        return fetch(TMDB_API_BASE + "/" + _0x1b5c9e + "/" + _0x4b30c0.id + "/external_ids?api_key=" + TMDB_API_KEY).then(_0x2b2e03 => _0x2b2e03.json()).then(_0x1feac1 => {
+          if (!_0x1feac1 || !_0x1feac1.imdb_id) {
+            return null;
+          }
+          return {
+            'Title': _0x3e82c4 === 'tv' ? _0x4b30c0.name : _0x4b30c0.title,
+            'Year': (_0x3e82c4 === 'tv' ? _0x4b30c0.first_air_date : _0x4b30c0.release_date || '').split('-')[0x0] || 'N/A',
+            'Poster': _0x4b30c0.poster_path ? TMDB_IMAGE_BASE + _0x4b30c0.poster_path : '',
+            'imdbID': _0x1feac1.imdb_id
+          };
+        })['catch'](() => null);
+      });
+      Promise.all(_0x373ea4).then(_0x1ef3a6 => {
+        const _0x2f7da5 = _0x1ef3a6.filter(Boolean);
+        _0x39a6db.innerHTML = '';
+        if (_0x2f7da5.length === 0x0) {
+          _0x39a6db.innerHTML = "<p>No similar titles found.</p>";
+          return;
+        }
+        _0x2f7da5.forEach(_0x1a9504 => {
+          _0x39a6db.appendChild(buildMovieCard(_0x1a9504));
+        });
+      });
+    });
+  })['catch'](_0x3f3dcf => {
+    console.error(_0x3f3dcf);
+    _0x39a6db.innerHTML = "<p>Error loading similar titles.</p>";
   });
 }
 function loadEpisodes(_0x216892, _0x26444f) {
@@ -697,6 +977,7 @@ window.addEventListener('load', () => {
   });
   if (!_0x2cfb8b || _0x2cfb8b === "#homeView") {
     switchView("homeView", false);
+    setHomeTab(HOME_TAB_DEFAULT);
     return;
   }
   let _0x1dab97 = new URLSearchParams(_0x2cfb8b.split('?')[0x1]);
@@ -728,6 +1009,7 @@ window.addEventListener('load', () => {
         }
       } else {
         switchView("homeView", false);
+        setHomeTab(HOME_TAB_DEFAULT);
       }
     }
   }
