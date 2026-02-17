@@ -576,7 +576,7 @@
   align-items: center;
   justify-content: center;
   font-weight: 600;
-  font-size: 14px;
+  font-size: 15px;
   text-align: center;
 }
 
@@ -623,7 +623,7 @@
     display: inline-block;
     white-space: nowrap;
     word-wrap: normal;
-    direction: ltr;
+    direction: ltr; 
     -webkit-font-feature-settings: 'liga';
     -webkit-font-smoothing: antialiased; }
 
@@ -675,6 +675,9 @@
     width: 165px;
     font-size: 14px;
     line-height: 1;
+     
+    align-items: flex-end;
+    gap: 8px;
   }
 
   #serverToggle {
@@ -813,7 +816,7 @@ footer {
     <div class="embed-controls">
       <div class="embed-center">
         <button id="seriesOverviewBtn" class="custom-toggle no-caret" onclick="goToSeriesOverview()" type="button" style="display: none;">
-          <span class="material-symbols-outlined" aria-hidden="true" style="font-size: 18px; margin-right: 6px; line-height: 1;">menu</span>
+          <span class="material-symbols-outlined" aria-hidden="true" style="vertical-align: top;font-size: 18px; line-height: 1;padding-right: 3px;">menu</span>
           Series Overview
         </button>
         <div id="serverDropdown" class="custom-dropdown" style="display: none;">
