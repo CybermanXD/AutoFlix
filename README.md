@@ -1,46 +1,57 @@
-<!-- AutoFlix: comment added -->
-<!-- Task note: single comment added per file -->
-**Edit a file, create a new file, and clone from Bitbucket in under 2 minutes**
+# AutoFlix
 
- 
+AutoFlix is a lightweight, Netflix-style web app for discovering movies and TV series, viewing details, and watching embedded streams with season/episode navigation.
 
----
+## Live Demo
 
-## Edit a file
+https://autoflix-vr4s.onrender.com/
 
-You’ll start by editing this README file to learn how to edit a file in Bitbucket.
+## Features
 
-1. Click **Source** on the left side.
-2. Click the README.md link from the list of files.
-3. Click the **Edit** button.
-4. Delete the following text: *Delete this line to make a change to the README from Bitbucket.*
-5. After making your change, click **Commit** and then **Commit** again in the dialog. The commit page will open and you’ll see the change you just made.
-6. Go back to the **Source** page.
+- Search movies and TV series via OMDb.
+- Detail view with poster, synopsis, cast, ratings, and metadata.
+- TV series episode list with season selection.
+- Watch view with multi-server embed switching.
+- Previous/Next episode navigation and episode selectors.
+- Responsive layout with a clean, dark UI.
 
----
+## Tech Stack
 
-## Create a file
+- HTML5
+- CSS3
+- Vanilla JavaScript
+- OMDb API
+- Render (hosting)
 
-Next, you’ll add a new file to this repository.
+## Project Structure
 
-1. Click the **New file** button at the top of the **Source** page.
-2. Give the file a filename of **contributors.txt**.
-3. Enter your name in the empty file space.
-4. Click **Commit** and then **Commit** again in the dialog.
-5. Go back to the **Source** page.
+- index.html — UI and layout
+- script.js — app logic (search, details, episode handling, embeds)
+- deploy.txt — deployment steps (Render)
+- Dockerfile — optional Docker web-service hosting
 
-Before you move on, go ahead and explore the repository. You've already seen the **Source** page, but check out the **Commits**, **Branches**, and **Settings** pages.
+## Local Setup
 
----
+1. Clone the repository.
+2. Open index.html in your browser (or use a local dev server).
 
-## Clone a repository
+If you want a simple local server:
 
-Use these steps to clone from SourceTree, our client for using the repository command-line free. Cloning allows you to work on your files locally. If you don't yet have SourceTree, [download and install first](https://www.sourcetreeapp.com/). If you prefer to clone from the command line, see [Clone a repository](https://confluence.atlassian.com/x/4whODQ).
+```bash
+python -m http.server 5500
+```
 
-1. You’ll see the clone button under the **Source** heading. Click that button.
-2. Now click **Check out in SourceTree**. You may need to create a SourceTree account or log in.
-3. When you see the **Clone New** dialog in SourceTree, update the destination path and name if you’d like to and then click **Clone**.
-4. Open the directory you just created to see your repository’s files.
+Then open: http://localhost:5500
 
-Now that you're more familiar with your Bitbucket repository, go ahead and add a new file locally. You can [push your change back to Bitbucket with SourceTree](https://confluence.atlassian.com/x/iqyBMg), or you can [add, commit,](https://confluence.atlassian.com/x/8QhODQ) and [push from the command line](https://confluence.atlassian.com/x/NQ0zDQ).
-<!-- Deployed via Render -->
+## Deployment
+
+This project can be deployed as a Render Static Site or a Docker Web Service. See deploy.txt for step-by-step instructions.
+
+## Notes
+
+- The app uses the public OMDb API for search and series data.
+- Embed sources are provided for convenience and can be adjusted in script.js.
+
+## License
+
+MIT
