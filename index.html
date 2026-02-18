@@ -157,6 +157,12 @@
       text-align: center;
       margin-top: 5px;
     }
+    .movie-genre {
+      font-size: 0.78rem;
+      color: #bbb;
+      text-align: center;
+      margin-top: 4px;
+    }
 
     /* Section Headings */
     .section-title {
@@ -303,6 +309,28 @@
 
     .home-pagination .page-button.active {
       background: #bf0810;
+    }
+
+    .home-pagination {
+      flex-wrap: wrap;
+    }
+
+    .home-pagination .page-buttons {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    @media (max-width: 600px) {
+      .home-pagination {
+        gap: 8px;
+      }
+
+      .home-pagination button {
+        padding: 8px 10px;
+        font-size: 0.85rem;
+      }
     }
 
     @media (max-width: 600px) {
@@ -824,10 +852,7 @@ footer {
       <div id="latestResults" class="movie-grid"></div>
       <div class="pagination home-pagination">
         <button id="homePrevPage" onclick="changeHomePage(-1)">Previous</button>
-        <button class="page-button" onclick="goHomePage(1)">1</button>
-        <button class="page-button" onclick="goHomePage(2)">2</button>
-        <button class="page-button" onclick="goHomePage(3)">3</button>
-        <button class="page-button" onclick="goHomePage(4)">4</button>
+        <div id="homePageButtons" class="page-buttons"></div>
         <button id="homeNextPage" onclick="changeHomePage(1)">Next</button>
       </div>
     </div>

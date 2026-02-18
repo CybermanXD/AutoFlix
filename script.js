@@ -52,26 +52,27 @@ function searchMovies(_0x2550f3, _0x3bd1a3) {
     document.getElementById('searchHeader').textContent = "Search Results for \"" + _0x2550f3 + "\"";
     if (_0x46355f.Response === "True") {
       totalSearchResults = parseInt(_0x46355f.totalResults);
-      _0x46355f.Search.forEach(_0x3f3267 => {
-        let _0x413d5e = document.createElement("div");
-        _0x413d5e.className = "movie-item";
-        _0x413d5e.onclick = () => {
-          showMovieDetails(_0x3f3267.imdbID);
-        };
-        if (_0x3f3267.Poster && _0x3f3267.Poster !== 'N/A') {
-          let _0x3ea995 = document.createElement("img");
-          _0x3ea995.src = _0x3f3267.Poster;
-          _0x3ea995.alt = _0x3f3267.Title;
-          _0x413d5e.appendChild(_0x3ea995);
-        }
-        let _0x494b67 = document.createElement('p');
-        _0x494b67.textContent = _0x3f3267.Title;
-        _0x413d5e.appendChild(_0x494b67);
-        let _0x4c4af3 = document.createElement('p');
-        _0x4c4af3.className = 'movie-year';
-        _0x4c4af3.textContent = "Year: " + _0x3f3267.Year;
-        _0x413d5e.appendChild(_0x4c4af3);
-        _0x4a4ef3.appendChild(_0x413d5e);
+      const _0x4fe77a = _0x46355f.Search.map(_0x3f3267 => {
+        return fetch("https://www.omdbapi.com/?apikey=d17f7c1a&i=" + _0x3f3267.imdbID).then(_0x17a8b3 => _0x17a8b3.json()).then(_0x1102a5 => {
+          return {
+            'Title': _0x3f3267.Title,
+            'Year': _0x3f3267.Year,
+            'Poster': _0x3f3267.Poster,
+            'imdbID': _0x3f3267.imdbID,
+            'Genres': _0x1102a5 && _0x1102a5.Genre ? _0x1102a5.Genre : ''
+          };
+        })['catch'](() => ({
+          'Title': _0x3f3267.Title,
+          'Year': _0x3f3267.Year,
+          'Poster': _0x3f3267.Poster,
+          'imdbID': _0x3f3267.imdbID,
+          'Genres': ''
+        }));
+      });
+      Promise.all(_0x4fe77a).then(_0x57a7ce => {
+        _0x57a7ce.forEach(_0x29dd33 => {
+          _0x4a4ef3.appendChild(buildMovieCard(_0x29dd33));
+        });
       });
     } else {
       _0x4a4ef3.innerHTML = "<p>No results found.</p>";
@@ -108,6 +109,12 @@ function buildMovieCard(_0x29dd33) {
   _0x24c4c6.className = 'movie-year';
   _0x24c4c6.textContent = "Year: " + _0x29dd33.Year;
   _0x50d7cd.appendChild(_0x24c4c6);
+  if (_0x29dd33.Genres) {
+    let _0x6c2f1d = document.createElement('p');
+    _0x6c2f1d.className = 'movie-genre';
+    _0x6c2f1d.textContent = "Genre: " + _0x29dd33.Genres;
+    _0x50d7cd.appendChild(_0x6c2f1d);
+  }
   return _0x50d7cd;
 }
 
@@ -146,20 +153,30 @@ function renderHomeTab() {
 function updateHomePagination() {
   const _0x21b6d5 = document.getElementById('homePrevPage');
   const _0x2090c4 = document.getElementById('homeNextPage');
+  const _0x39f7a9 = document.getElementById('homePageButtons');
   if (_0x21b6d5) {
     _0x21b6d5.disabled = currentHomePage <= 0x1;
   }
   if (_0x2090c4) {
     _0x2090c4.disabled = currentHomePage >= HOME_TOTAL_PAGES;
   }
-  const _0x51d1f2 = document.querySelectorAll('.home-pagination .page-button');
-  _0x51d1f2.forEach((_0x4cd2fe, _0x2b5e6a) => {
-    if (_0x2b5e6a + 0x1 === currentHomePage) {
-      _0x4cd2fe.classList.add('active');
-    } else {
-      _0x4cd2fe.classList.remove('active');
+  if (!_0x39f7a9) {
+    return;
+  }
+  _0x39f7a9.innerHTML = '';
+  const _0x11430e = Math.max(0x1, currentHomePage - 0x1);
+  const _0x2a6652 = Math.min(HOME_TOTAL_PAGES, _0x11430e + 0x2);
+  const _0x5a7f7f = _0x2a6652 - _0x11430e < 0x2 ? Math.max(0x1, _0x2a6652 - 0x2) : _0x11430e;
+  for (let _0x3b3dd3 = _0x5a7f7f; _0x3b3dd3 <= _0x2a6652; _0x3b3dd3++) {
+    const _0x5f08a6 = document.createElement('button');
+    _0x5f08a6.className = 'page-button';
+    _0x5f08a6.textContent = _0x3b3dd3;
+    _0x5f08a6.onclick = () => goHomePage(_0x3b3dd3);
+    if (_0x3b3dd3 === currentHomePage) {
+      _0x5f08a6.classList.add('active');
     }
-  });
+    _0x39f7a9.appendChild(_0x5f08a6);
+  }
 }
 
 function changeHomePage(_0x1f0f6d) {
@@ -189,7 +206,7 @@ function loadLatestMovies(_0x3f5c44 = 0x1) {
   if (!_0x1aef21) {
     return;
   }
-  if (latestMoviesCache[_0x3f5c44]) {
+  if (latestMoviesCache[_0x3f5c44] && latestMoviesCache[_0x3f5c44].length > 0x0) {
     renderHomeTab();
     return;
   }
@@ -224,7 +241,7 @@ function loadLatestShows(_0x1c1d6d = 0x1) {
   if (!_0x3d76d3) {
     return;
   }
-  if (latestShowsCache[_0x1c1d6d]) {
+  if (latestShowsCache[_0x1c1d6d] && latestShowsCache[_0x1c1d6d].length > 0x0) {
     renderHomeTab();
     return;
   }
