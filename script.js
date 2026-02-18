@@ -3,13 +3,16 @@ const TMDB_API_BASE = "https://tmdb-proxy-a9cp.onrender.com/tmdb";
 const TMDB_IMAGE_BASE = "https://image.tmdb.org/t/p/w342";
 const SUPABASE_LATEST_MOVIES_URL = "https://tokzbiepijjdvbdtacjz.supabase.co/storage/v1/object/public/autoflix-media-cache/latest-movies.json";
 const SUPABASE_LATEST_TV_URL = "https://tokzbiepijjdvbdtacjz.supabase.co/storage/v1/object/public/autoflix-media-cache/latest-tv.json";
+const SUPABASE_LATEST_ANIME_URL = "https://tokzbiepijjdvbdtacjz.supabase.co/storage/v1/object/public/autoflix-media-cache/latest-anime.json";
 const HOME_TAB_DEFAULT = 'shows';
 const HOME_PAGE_SIZE = 0x12;
 const HOME_TOTAL_PAGES = 0xa;
 let latestMoviesCache = {};
 let latestShowsCache = {};
+let latestAnimeCache = {};
 let latestMoviesData = null;
 let latestShowsData = null;
+let latestAnimeData = null;
 let currentHomeTab = HOME_TAB_DEFAULT;
 let currentHomePage = 0x1;
 let currentMovieData = {};
@@ -125,9 +128,9 @@ function setHomeTab(_0x7d90a1) {
   _0x3fb529.forEach(_0x2c968a => {
     _0x2c968a.classList.remove('active');
   });
-  const _0x535d19 = _0x7d90a1 === 'shows' ? 0x1 : 0x0;
-  if (_0x3fb529[_0x535d19]) {
-    _0x3fb529[_0x535d19].classList.add('active');
+  const _0x535d19 = document.querySelector(`.tab-button[data-tab="${_0x7d90a1}"]`);
+  if (_0x535d19) {
+    _0x535d19.classList.add('active');
   }
   loadHomeTabPage();
 }
@@ -138,7 +141,7 @@ function renderHomeTab() {
     return;
   }
   setHomeLoading(false);
-  const _0x11a38a = currentHomeTab === 'shows' ? latestShowsCache[currentHomePage] : latestMoviesCache[currentHomePage];
+  const _0x11a38a = currentHomeTab === 'shows' ? latestShowsCache[currentHomePage] : currentHomeTab === 'anime' ? latestAnimeCache[currentHomePage] : latestMoviesCache[currentHomePage];
   _0x59a782.innerHTML = '';
   if (!_0x11a38a || _0x11a38a.length === 0x0) {
     _0x59a782.innerHTML = "<p>No items found.</p>";
@@ -196,6 +199,8 @@ function goHomePage(_0x361e31) {
 function loadHomeTabPage() {
   if (currentHomeTab === 'shows') {
     loadLatestShows(currentHomePage);
+  } else if (currentHomeTab === 'anime') {
+    loadLatestAnime(currentHomePage);
   } else {
     loadLatestMovies(currentHomePage);
   }
@@ -267,6 +272,41 @@ function loadLatestShows(_0x1c1d6d = 0x1) {
     if (currentHomeTab === 'shows') {
       setHomeLoading(false);
       _0x3d76d3.innerHTML = "<p>Error loading TV shows.</p>";
+    }
+  });
+}
+
+function loadLatestAnime(_0x4a0f72 = 0x1) {
+  const _0x2c4f3e = document.getElementById("latestResults");
+  if (!_0x2c4f3e) {
+    return;
+  }
+  if (latestAnimeCache[_0x4a0f72] && latestAnimeCache[_0x4a0f72].length > 0x0) {
+    renderHomeTab();
+    return;
+  }
+  if (latestAnimeData && latestAnimeData.pages) {
+    latestAnimeCache[_0x4a0f72] = latestAnimeData.pages[String(_0x4a0f72)] || [];
+    renderHomeTab();
+    return;
+  }
+  if (currentHomeTab === 'anime') {
+    _0x2c4f3e.innerHTML = '';
+    setHomeLoading(true);
+  }
+  fetch(SUPABASE_LATEST_ANIME_URL).then(_0x53dfb7 => _0x53dfb7.json()).then(_0x2b4f76 => {
+    latestAnimeData = _0x2b4f76;
+    const _0x5801f5 = _0x2b4f76 && _0x2b4f76.pages ? _0x2b4f76.pages[String(_0x4a0f72)] : [];
+    latestAnimeCache[_0x4a0f72] = _0x5801f5 || [];
+    if (currentHomeTab === 'anime') {
+      renderHomeTab();
+    }
+  })['catch'](_0x4f5e0b => {
+    console.error(_0x4f5e0b);
+    latestAnimeCache[_0x4a0f72] = [];
+    if (currentHomeTab === 'anime') {
+      setHomeLoading(false);
+      _0x2c4f3e.innerHTML = "<p>Error loading latest anime.</p>";
     }
   });
 }

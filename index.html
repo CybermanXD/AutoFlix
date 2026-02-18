@@ -855,8 +855,9 @@ footer {
      
     <div id="homeLatestSection">
       <div class="tab-header">
-        <button class="tab-button active" type="button" onclick="setHomeTab('shows')">Latest TV Shows</button>
-        <button class="tab-button" type="button" onclick="setHomeTab('movies')">Latest Movies</button>
+        <button class="tab-button active" type="button" data-tab="shows" onclick="setHomeTab('shows')">Latest TV Shows</button>
+        <button class="tab-button" type="button" data-tab="movies" onclick="setHomeTab('movies')">Latest Movies</button>
+        <button class="tab-button" type="button" data-tab="anime" onclick="setHomeTab('anime')">Latest Anime</button>
       </div>
       <div id="homeLoading" class="episode-loading" aria-hidden="true"></div>
       <div id="latestResults" class="movie-grid"></div>

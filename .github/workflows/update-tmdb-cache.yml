@@ -33,24 +33,33 @@ jobs:
           const TMDB_IMAGE_BASE = 'https://image.tmdb.org/t/p/w342';
           const TMDB_API_KEY = process.env.TMDB_API_KEY;
           const PAGE_LIMIT = 10;
+          const ANIME_PAGE_LIMIT = 15;
+          const ANIME_YEAR_START = '2026-01-01';
+          const ANIME_YEAR_END = '2026-12-31';
           const PAGE_SIZE = 18;
 
           async function mapPage(type, page) {
-            const listRes = await fetch(`${TMDB_API_BASE}/trending/${type}/week?api_key=${TMDB_API_KEY}&page=${page}`);
+            let listRes;
+            if (type === 'anime') {
+              listRes = await fetch(`${TMDB_API_BASE}/discover/tv?api_key=${TMDB_API_KEY}&with_genres=16&with_original_language=ja&sort_by=popularity.desc&first_air_date.gte=${ANIME_YEAR_START}&first_air_date.lte=${ANIME_YEAR_END}&page=${page}`);
+            } else {
+              listRes = await fetch(`${TMDB_API_BASE}/trending/${type}/week?api_key=${TMDB_API_KEY}&page=${page}`);
+            }
             const listJson = await listRes.json();
             if (!listJson || !listJson.results) return [];
             const results = listJson.results.slice(0, PAGE_SIZE);
             const mapped = await Promise.all(results.map(async (item) => {
               const id = item.id;
-              const extRes = await fetch(`${TMDB_API_BASE}/${type}/${id}/external_ids?api_key=${TMDB_API_KEY}`);
+              const detailType = type === 'anime' ? 'tv' : type;
+              const extRes = await fetch(`${TMDB_API_BASE}/${detailType}/${id}/external_ids?api_key=${TMDB_API_KEY}`);
               const extJson = await extRes.json();
               if (!extJson || !extJson.imdb_id) return null;
-              const detailRes = await fetch(`${TMDB_API_BASE}/${type}/${id}?api_key=${TMDB_API_KEY}`);
+              const detailRes = await fetch(`${TMDB_API_BASE}/${detailType}/${id}?api_key=${TMDB_API_KEY}`);
               const detailJson = await detailRes.json();
               const genres = detailJson && detailJson.genres ? detailJson.genres.map(g => g.name).join(', ') : '';
               return {
-                Title: type === 'tv' ? item.name : item.title,
-                Year: (type === 'tv' ? item.first_air_date : item.release_date || '').split('-')[0] || 'N/A',
+                Title: type === 'tv' || type === 'anime' ? item.name : item.title,
+                Year: (type === 'tv' || type === 'anime' ? item.first_air_date : item.release_date || '').split('-')[0] || 'N/A',
                 Poster: item.poster_path ? `${TMDB_IMAGE_BASE}${item.poster_path}` : '',
                 imdbID: extJson.imdb_id,
                 Genres: genres
@@ -71,7 +80,8 @@ jobs:
             });
             const formattedTimestamp = `${formatter.format(new Date()).replace(',', ' |')} IST`;
             const pages = {};
-            for (let page = 1; page <= PAGE_LIMIT; page++) {
+            const pageLimit = type === 'anime' ? ANIME_PAGE_LIMIT : PAGE_LIMIT;
+            for (let page = 1; page <= pageLimit; page++) {
               pages[String(page)] = await mapPage(type, page);
             }
             return {
@@ -87,8 +97,10 @@ jobs:
             }
             const moviesPayload = await buildPayload('movie');
             const tvPayload = await buildPayload('tv');
+            const animePayload = await buildPayload('anime');
             fs.writeFileSync('latest-movies.json', JSON.stringify(moviesPayload, null, 2));
             fs.writeFileSync('latest-tv.json', JSON.stringify(tvPayload, null, 2));
+            fs.writeFileSync('latest-anime.json', JSON.stringify(animePayload, null, 2));
           })();
           NODE
 
@@ -96,3 +108,4 @@ jobs:
         run: |
           aws s3 cp latest-movies.json s3://$SUPABASE_BUCKET/latest-movies.json --endpoint-url "$SUPABASE_S3_ENDPOINT"
           aws s3 cp latest-tv.json s3://$SUPABASE_BUCKET/latest-tv.json --endpoint-url "$SUPABASE_S3_ENDPOINT"
+          aws s3 cp latest-anime.json s3://$SUPABASE_BUCKET/latest-anime.json --endpoint-url "$SUPABASE_S3_ENDPOINT"
