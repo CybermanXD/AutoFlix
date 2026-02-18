@@ -354,10 +354,14 @@ function showMovieDetails(_0x24629a, _0x459565 = true, _0x5ece73 = 0x1) {
 function loadSimilarTitles(_0x5c4a25) {
   const _0x39a6db = document.getElementById('similarResults');
   const _0x17522d = document.getElementById('similarSection');
+  const _0x2b6f4d = document.getElementById('similarLoading');
   if (!_0x39a6db || !_0x17522d || !_0x5c4a25) {
     return;
   }
-  _0x39a6db.innerHTML = "<p>Loading similar titles...</p>";
+  if (_0x2b6f4d) {
+    _0x2b6f4d.style.display = 'block';
+  }
+  _0x39a6db.innerHTML = '';
   const _0x3e82c4 = _0x5c4a25.Type && _0x5c4a25.Type.toLowerCase() === 'series' ? 'tv' : 'movie';
   const _0x4e93e0 = _0x5c4a25.imdbID;
   if (!_0x4e93e0) {
@@ -367,12 +371,18 @@ function loadSimilarTitles(_0x5c4a25) {
   fetch(TMDB_API_BASE + "/find/" + _0x4e93e0 + "?api_key=" + TMDB_API_KEY + "&external_source=imdb_id").then(_0x3c22e0 => _0x3c22e0.json()).then(_0x55b0c1 => {
     const _0x2c7f2a = _0x3e82c4 === 'tv' ? _0x55b0c1.tv_results : _0x55b0c1.movie_results;
     if (!_0x2c7f2a || _0x2c7f2a.length === 0x0) {
+      if (_0x2b6f4d) {
+        _0x2b6f4d.style.display = 'none';
+      }
       _0x39a6db.innerHTML = "<p>No similar titles found.</p>";
       return;
     }
     const _0x2f1084 = _0x2c7f2a[0x0].id;
     return fetch(TMDB_API_BASE + "/" + _0x3e82c4 + "/" + _0x2f1084 + "/recommendations?api_key=" + TMDB_API_KEY).then(_0x8f0c7 => _0x8f0c7.json()).then(_0x8d64c5 => {
       if (!_0x8d64c5 || !_0x8d64c5.results || _0x8d64c5.results.length === 0x0) {
+        if (_0x2b6f4d) {
+          _0x2b6f4d.style.display = 'none';
+        }
         _0x39a6db.innerHTML = "<p>No similar titles found.</p>";
         return;
       }
@@ -393,6 +403,9 @@ function loadSimilarTitles(_0x5c4a25) {
       });
       Promise.all(_0x373ea4).then(_0x1ef3a6 => {
         const _0x2f7da5 = _0x1ef3a6.filter(Boolean);
+        if (_0x2b6f4d) {
+          _0x2b6f4d.style.display = 'none';
+        }
         _0x39a6db.innerHTML = '';
         if (_0x2f7da5.length === 0x0) {
           _0x39a6db.innerHTML = "<p>No similar titles found.</p>";
@@ -405,6 +418,9 @@ function loadSimilarTitles(_0x5c4a25) {
     });
   })['catch'](_0x3f3dcf => {
     console.error(_0x3f3dcf);
+    if (_0x2b6f4d) {
+      _0x2b6f4d.style.display = 'none';
+    }
     _0x39a6db.innerHTML = "<p>Error loading similar titles.</p>";
   });
 }
