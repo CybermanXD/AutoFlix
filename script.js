@@ -43,14 +43,6 @@ function formatReleaseText(_0x2d7be5, _0x2a1e0a) {
     }
   }
   if (_0x2a1e0a) {
-    const _0x2a3b8d = parseInt(_0x2a1e0a, 10);
-    if (!isNaN(_0x2a3b8d)) {
-      const _0x52b2b8 = new Date(_0x2a3b8d, 0, 1);
-      return _0x52b2b8.toLocaleDateString('en-US', {
-        month: 'short',
-        year: 'numeric'
-      });
-    }
     return String(_0x2a1e0a);
   }
   return 'N/A';
@@ -1441,6 +1433,26 @@ function setEpisodeLoading(_0x46fb40) {
   }
   updateEpisodeNavButtons();
 }
+function ensureIframeFullscreenPermissions(_0x1a8c1c = document) {
+  if (!_0x1a8c1c) {
+    return;
+  }
+  const _0x3f1d2f = _0x1a8c1c.querySelectorAll ? _0x1a8c1c.querySelectorAll('iframe') : [];
+  _0x3f1d2f.forEach(_0x2ac0c4 => {
+    if (!_0x2ac0c4) {
+      return;
+    }
+    const _0x430b12 = _0x2ac0c4.getAttribute('allow') || '';
+    if (!_0x430b12.toLowerCase().includes('fullscreen')) {
+      _0x2ac0c4.setAttribute('allow', _0x430b12 ? _0x430b12 + '; fullscreen *' : 'fullscreen *');
+    } else if (!_0x430b12.includes('*') && !_0x430b12.includes('fullscreen *')) {
+      _0x2ac0c4.setAttribute('allow', _0x430b12.replace(/fullscreen/gi, 'fullscreen *'));
+    }
+    if (!_0x2ac0c4.hasAttribute('allowfullscreen')) {
+      _0x2ac0c4.setAttribute('allowfullscreen', '');
+    }
+  });
+}
 window.addEventListener('load', () => {
   const _0x2cfb8b = window.location.hash;
   const _0x4dbb8a = document.getElementById('embedFrame');
@@ -1449,6 +1461,24 @@ window.addEventListener('load', () => {
       setEpisodeLoading(false);
     });
   }
+  ensureIframeFullscreenPermissions();
+  const _0x1d2c1a = new MutationObserver(_0x5f7993 => {
+    _0x5f7993.forEach(_0x5c27a4 => {
+      _0x5c27a4.addedNodes.forEach(_0x1ad3b4 => {
+        if (_0x1ad3b4 && _0x1ad3b4.nodeType === Node.ELEMENT_NODE) {
+          if (_0x1ad3b4.tagName === 'IFRAME') {
+            ensureIframeFullscreenPermissions(_0x1ad3b4.parentNode || document);
+          } else {
+            ensureIframeFullscreenPermissions(_0x1ad3b4);
+          }
+        }
+      });
+    });
+  });
+  _0x1d2c1a.observe(document.body, {
+    childList: true,
+    subtree: true
+  });
   document.addEventListener('click', _0x16786f => {
     const _0x2a3e2f = document.getElementById('episodeDropdown');
     const _0x1a2b54 = document.getElementById('seasonDropdown');
