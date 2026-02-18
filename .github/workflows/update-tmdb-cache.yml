@@ -56,13 +56,22 @@ jobs:
           }
 
           async function buildPayload(type) {
+            const formatter = new Intl.DateTimeFormat('en-GB', {
+              day: '2-digit',
+              month: 'short',
+              year: 'numeric',
+              hour: '2-digit',
+              minute: '2-digit',
+              hour12: true
+            });
+            const formattedTimestamp = formatter.format(new Date()).replace(',', ' |');
             const pages = {};
             for (let page = 1; page <= PAGE_LIMIT; page++) {
               pages[String(page)] = await mapPage(type, page);
             }
             return {
               type,
-              generatedAt: new Date().toISOString(),
+              generatedAt: formattedTimestamp,
               pages
             };
           }
