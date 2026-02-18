@@ -137,6 +137,11 @@ function searchFilters(_0x3bd1a3) {
       _0x2f3039 = _0x2f3039.filter(_0x2f77a4 => (_0x2f77a4.Genres || '').toLowerCase().includes(_0x5b9a76));
     }
     _0x2f3039 = _0x2f3039.filter(_0x1b3f92 => _0x1b3f92.Title && _0x1b3f92.imdbID);
+    const _0x3f0f1d = new Date().getFullYear();
+    _0x2f3039 = _0x2f3039.filter(_0x3a7fda => {
+      const _0x46c0f0 = parseInt(_0x3a7fda.Year || '0');
+      return !_0x46c0f0 || _0x46c0f0 <= _0x3f0f1d;
+    });
     _0x2f3039.sort((_0x11a3b6, _0x319c30) => {
       const _0x48f0e5 = parseInt(_0x11a3b6.Year || '0');
       const _0x1b3bd4 = parseInt(_0x319c30.Year || '0');
