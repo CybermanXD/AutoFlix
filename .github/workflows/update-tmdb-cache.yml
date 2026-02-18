@@ -1,0 +1,113 @@
+name: Update TMDB Cache
+
+"on":
+  schedule:
+    - cron: "0 */2 * * *"
+  workflow_dispatch: {}
+
+jobs:
+  update-cache:
+    runs-on: ubuntu-latest
+    env:
+      TMDB_API_KEY: ${{ secrets.TMDB_API_KEY }}
+      SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+      SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+      SUPABASE_BUCKET: autoflix-media-cache
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Build cache payloads
+        run: |
+          node -e "
+          const fs = require('fs');
+          const fetch = global.fetch;
+          const TMDB_API_BASE = 'https://api.themoviedb.org/3';
+          const TMDB_IMAGE_BASE = 'https://image.tmdb.org/t/p/w342';
+          const TMDB_API_KEY = process.env.TMDB_API_KEY;
+          const PAGE_LIMIT = 10;
+          const PAGE_SIZE = 18;
+
+          async function mapPage(type, page) {
+            const listRes = await fetch(`${TMDB_API_BASE}/trending/${type}/week?api_key=${TMDB_API_KEY}&page=${page}`);
+            const listJson = await listRes.json();
+            if (!listJson || !listJson.results) return [];
+            const results = listJson.results.slice(0, PAGE_SIZE);
+            const mapped = await Promise.all(results.map(async (item) => {
+              const id = item.id;
+              const extRes = await fetch(`${TMDB_API_BASE}/${type}/${id}/external_ids?api_key=${TMDB_API_KEY}`);
+              const extJson = await extRes.json();
+              if (!extJson || !extJson.imdb_id) return null;
+              return {
+                Title: type === 'tv' ? item.name : item.title,
+                Year: (type === 'tv' ? item.first_air_date : item.release_date || '').split('-')[0] || 'N/A',
+                Poster: item.poster_path ? `${TMDB_IMAGE_BASE}${item.poster_path}` : '',
+                imdbID: extJson.imdb_id
+              };
+            }));
+            return mapped.filter(Boolean);
+          }
+
+          async function buildPayload(type) {
+            const pages = {};
+            for (let page = 1; page <= PAGE_LIMIT; page++) {
+              pages[String(page)] = await mapPage(type, page);
+            }
+            return {
+              type,
+              generatedAt: new Date().toISOString(),
+              pages
+            };
+          }
+
+          (async () => {
+            if (!TMDB_API_KEY) {
+              throw new Error('Missing TMDB_API_KEY');
+            }
+            const moviesPayload = await buildPayload('movie');
+            const tvPayload = await buildPayload('tv');
+            fs.writeFileSync('latest-movies.json', JSON.stringify(moviesPayload, null, 2));
+            fs.writeFileSync('latest-tv.json', JSON.stringify(tvPayload, null, 2));
+          })();
+          "
+
+      - name: Upload to Supabase Storage
+        run: |
+          node -e "
+          const fs = require('fs');
+          const fetch = global.fetch;
+          const SUPABASE_URL = process.env.SUPABASE_URL;
+          const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+          const SUPABASE_BUCKET = process.env.SUPABASE_BUCKET;
+
+          async function uploadObject(filePath, objectName) {
+            const fileData = fs.readFileSync(filePath);
+            const url = `${SUPABASE_URL}/storage/v1/object/${SUPABASE_BUCKET}/${objectName}`;
+            const res = await fetch(url, {
+              method: 'PUT',
+              headers: {
+                'Authorization': `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
+                'Content-Type': 'application/json',
+                'x-upsert': 'true'
+              },
+              body: fileData
+            });
+            if (!res.ok) {
+              const text = await res.text();
+              throw new Error(`Failed upload ${objectName}: ${res.status} ${text}`);
+            }
+          }
+
+          (async () => {
+            if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
+              throw new Error('Missing SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY');
+            }
+            await uploadObject('latest-movies.json', 'latest-movies.json');
+            await uploadObject('latest-tv.json', 'latest-tv.json');
+          })();
+          "

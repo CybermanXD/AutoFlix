@@ -1,11 +1,15 @@
 const TMDB_API_KEY = "8c5107580c5a36557d7c01b6f920c344";
 const TMDB_API_BASE = "https://api.themoviedb.org/3";
 const TMDB_IMAGE_BASE = "https://image.tmdb.org/t/p/w342";
+const SUPABASE_LATEST_MOVIES_URL = "https://tokzbiepijjdvbdtacjz.supabase.co/storage/v1/object/public/autoflix-media-cache/latest-movies.json";
+const SUPABASE_LATEST_TV_URL = "https://tokzbiepijjdvbdtacjz.supabase.co/storage/v1/object/public/autoflix-media-cache/latest-tv.json";
 const HOME_TAB_DEFAULT = 'shows';
 const HOME_PAGE_SIZE = 0x12;
-const HOME_TOTAL_PAGES = 0x4;
+const HOME_TOTAL_PAGES = 0xa;
 let latestMoviesCache = {};
 let latestShowsCache = {};
+let latestMoviesData = null;
+let latestShowsData = null;
 let currentHomeTab = HOME_TAB_DEFAULT;
 let currentHomePage = 0x1;
 let currentMovieData = {};
@@ -43,38 +47,33 @@ function performSearch(_0x555fed = 0x1) {
 function searchMovies(_0x2550f3, _0x3bd1a3) {
   const _0x4a4ef3 = document.getElementById("searchResults");
   _0x4a4ef3.innerHTML = "<p>Searching...</p>";
-  fetch(TMDB_API_BASE + "/search/multi?api_key=" + TMDB_API_KEY + "&query=" + encodeURIComponent(_0x2550f3) + "&page=" + _0x3bd1a3).then(_0xcb0b4f => _0xcb0b4f.json()).then(_0x46355f => {
+  fetch("https://www.omdbapi.com/?apikey=d17f7c1a&s=" + encodeURIComponent(_0x2550f3) + '&page=' + _0x3bd1a3).then(_0xcb0b4f => _0xcb0b4f.json()).then(_0x46355f => {
     _0x4a4ef3.innerHTML = '';
     document.getElementById('searchHeader').textContent = "Search Results for \"" + _0x2550f3 + "\"";
-    if (_0x46355f && _0x46355f.results && _0x46355f.results.length > 0x0) {
-      totalSearchResults = parseInt(_0x46355f.total_results || 0x0);
-      const _0x3f3267 = _0x46355f.results.filter(_0x5d1b4d => _0x5d1b4d.media_type === 'movie' || _0x5d1b4d.media_type === 'tv');
-      const _0x5f7f6c = _0x3f3267.map(_0x5c4d7e => {
-        const _0x3c82b1 = _0x5c4d7e.media_type === 'tv' ? 'tv' : 'movie';
-        return fetch(TMDB_API_BASE + "/" + _0x3c82b1 + "/" + _0x5c4d7e.id + "/external_ids?api_key=" + TMDB_API_KEY).then(_0x1a6ad9 => _0x1a6ad9.json()).then(_0x2cbb55 => {
-          if (!_0x2cbb55 || !_0x2cbb55.imdb_id) {
-            return null;
-          }
-          return {
-            'Title': _0x3c82b1 === 'tv' ? _0x5c4d7e.name : _0x5c4d7e.title,
-            'Year': (_0x3c82b1 === 'tv' ? _0x5c4d7e.first_air_date : _0x5c4d7e.release_date || '').split('-')[0x0] || 'N/A',
-            'Poster': _0x5c4d7e.poster_path ? TMDB_IMAGE_BASE + _0x5c4d7e.poster_path : '',
-            'imdbID': _0x2cbb55.imdb_id
-          };
-        })['catch'](() => null);
-      });
-      Promise.all(_0x5f7f6c).then(_0x1f1e2e => {
-        const _0x5e4cd9 = _0x1f1e2e.filter(Boolean);
-        if (_0x5e4cd9.length === 0x0) {
-          _0x4a4ef3.innerHTML = "<p>No results found.</p>";
-        } else {
-          _0x5e4cd9.forEach(_0x29dd33 => {
-            _0x4a4ef3.appendChild(buildMovieCard(_0x29dd33));
-          });
+    if (_0x46355f.Response === "True") {
+      totalSearchResults = parseInt(_0x46355f.totalResults);
+      _0x46355f.Search.forEach(_0x3f3267 => {
+        let _0x413d5e = document.createElement("div");
+        _0x413d5e.className = "movie-item";
+        _0x413d5e.onclick = () => {
+          showMovieDetails(_0x3f3267.imdbID);
+        };
+        if (_0x3f3267.Poster && _0x3f3267.Poster !== 'N/A') {
+          let _0x3ea995 = document.createElement("img");
+          _0x3ea995.src = _0x3f3267.Poster;
+          _0x3ea995.alt = _0x3f3267.Title;
+          _0x413d5e.appendChild(_0x3ea995);
         }
+        let _0x494b67 = document.createElement('p');
+        _0x494b67.textContent = _0x3f3267.Title;
+        _0x413d5e.appendChild(_0x494b67);
+        let _0x4c4af3 = document.createElement('p');
+        _0x4c4af3.className = 'movie-year';
+        _0x4c4af3.textContent = "Year: " + _0x3f3267.Year;
+        _0x413d5e.appendChild(_0x4c4af3);
+        _0x4a4ef3.appendChild(_0x413d5e);
       });
     } else {
-      totalSearchResults = 0x0;
       _0x4a4ef3.innerHTML = "<p>No results found.</p>";
     }
     updateSearchPagination();
@@ -194,39 +193,22 @@ function loadLatestMovies(_0x3f5c44 = 0x1) {
     renderHomeTab();
     return;
   }
+  if (latestMoviesData && latestMoviesData.pages) {
+    latestMoviesCache[_0x3f5c44] = latestMoviesData.pages[String(_0x3f5c44)] || [];
+    renderHomeTab();
+    return;
+  }
   if (currentHomeTab === 'movies') {
     _0x1aef21.innerHTML = '';
     setHomeLoading(true);
   }
-  fetch(TMDB_API_BASE + "/trending/movie/week?api_key=" + TMDB_API_KEY + "&page=" + _0x3f5c44).then(_0x3eb28c => _0x3eb28c.json()).then(_0x2d2d1b => {
-    if (!_0x2d2d1b || !_0x2d2d1b.results || _0x2d2d1b.results.length === 0x0) {
-      latestMoviesCache[_0x3f5c44] = [];
-      if (currentHomeTab === 'movies') {
-        setHomeLoading(false);
-        _0x1aef21.innerHTML = "<p>No movies found.</p>";
-      }
-      return;
+  fetch(SUPABASE_LATEST_MOVIES_URL).then(_0x3eb28c => _0x3eb28c.json()).then(_0x2d2d1b => {
+    latestMoviesData = _0x2d2d1b;
+    const _0x3a43f2 = _0x2d2d1b && _0x2d2d1b.pages ? _0x2d2d1b.pages[String(_0x3f5c44)] : [];
+    latestMoviesCache[_0x3f5c44] = _0x3a43f2 || [];
+    if (currentHomeTab === 'movies') {
+      renderHomeTab();
     }
-    const _0x3a43f2 = _0x2d2d1b.results.slice(0x0, HOME_PAGE_SIZE);
-    const _0x4fb3d8 = _0x3a43f2.map(_0x4d9b39 => {
-      return fetch(TMDB_API_BASE + "/movie/" + _0x4d9b39.id + "/external_ids?api_key=" + TMDB_API_KEY).then(_0x458e15 => _0x458e15.json()).then(_0x5318d8 => {
-        if (!_0x5318d8 || !_0x5318d8.imdb_id) {
-          return null;
-        }
-        return {
-          'Title': _0x4d9b39.title,
-          'Year': (_0x4d9b39.release_date || '').split('-')[0x0] || 'N/A',
-          'Poster': _0x4d9b39.poster_path ? TMDB_IMAGE_BASE + _0x4d9b39.poster_path : '',
-          'imdbID': _0x5318d8.imdb_id
-        };
-      })['catch'](() => null);
-    });
-    Promise.all(_0x4fb3d8).then(_0x2d7e8a => {
-      latestMoviesCache[_0x3f5c44] = _0x2d7e8a.filter(Boolean);
-      if (currentHomeTab === 'movies') {
-        renderHomeTab();
-      }
-    });
   })['catch'](_0x230f2c => {
     console.error(_0x230f2c);
     latestMoviesCache[_0x3f5c44] = [];
@@ -246,39 +228,22 @@ function loadLatestShows(_0x1c1d6d = 0x1) {
     renderHomeTab();
     return;
   }
+  if (latestShowsData && latestShowsData.pages) {
+    latestShowsCache[_0x1c1d6d] = latestShowsData.pages[String(_0x1c1d6d)] || [];
+    renderHomeTab();
+    return;
+  }
   if (currentHomeTab === 'shows') {
     _0x3d76d3.innerHTML = '';
     setHomeLoading(true);
   }
-  fetch(TMDB_API_BASE + "/trending/tv/week?api_key=" + TMDB_API_KEY + "&page=" + _0x1c1d6d).then(_0x2b6e98 => _0x2b6e98.json()).then(_0x152278 => {
-    if (!_0x152278 || !_0x152278.results || _0x152278.results.length === 0x0) {
-      latestShowsCache[_0x1c1d6d] = [];
-      if (currentHomeTab === 'shows') {
-        setHomeLoading(false);
-        _0x3d76d3.innerHTML = "<p>No TV shows found.</p>";
-      }
-      return;
+  fetch(SUPABASE_LATEST_TV_URL).then(_0x2b6e98 => _0x2b6e98.json()).then(_0x152278 => {
+    latestShowsData = _0x152278;
+    const _0x4f9ed8 = _0x152278 && _0x152278.pages ? _0x152278.pages[String(_0x1c1d6d)] : [];
+    latestShowsCache[_0x1c1d6d] = _0x4f9ed8 || [];
+    if (currentHomeTab === 'shows') {
+      renderHomeTab();
     }
-    const _0x4f9ed8 = _0x152278.results.slice(0x0, HOME_PAGE_SIZE);
-    const _0x3b2f2f = _0x4f9ed8.map(_0x2e5e2c => {
-      return fetch(TMDB_API_BASE + "/tv/" + _0x2e5e2c.id + "/external_ids?api_key=" + TMDB_API_KEY).then(_0x4922bf => _0x4922bf.json()).then(_0x2f26f3 => {
-        if (!_0x2f26f3 || !_0x2f26f3.imdb_id) {
-          return null;
-        }
-        return {
-          'Title': _0x2e5e2c.name,
-          'Year': (_0x2e5e2c.first_air_date || '').split('-')[0x0] || 'N/A',
-          'Poster': _0x2e5e2c.poster_path ? TMDB_IMAGE_BASE + _0x2e5e2c.poster_path : '',
-          'imdbID': _0x2f26f3.imdb_id
-        };
-      })['catch'](() => null);
-    });
-    Promise.all(_0x3b2f2f).then(_0x1a7ed6 => {
-      latestShowsCache[_0x1c1d6d] = _0x1a7ed6.filter(Boolean);
-      if (currentHomeTab === 'shows') {
-        renderHomeTab();
-      }
-    });
   })['catch'](_0x5f3dd0 => {
     console.error(_0x5f3dd0);
     latestShowsCache[_0x1c1d6d] = [];
