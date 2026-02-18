@@ -32,6 +32,29 @@ let totalSeasonsCount = 0x0;
 let isEpisodeMenuOpen = false;
 let isSeasonMenuOpen = false;
 let isServerMenuOpen = false;
+function formatReleaseText(_0x2d7be5, _0x2a1e0a) {
+  if (_0x2d7be5) {
+    const _0x12a0b4 = new Date(_0x2d7be5);
+    if (!isNaN(_0x12a0b4)) {
+      return _0x12a0b4.toLocaleDateString('en-US', {
+        month: 'short',
+        year: 'numeric'
+      });
+    }
+  }
+  if (_0x2a1e0a) {
+    const _0x2a3b8d = parseInt(_0x2a1e0a, 10);
+    if (!isNaN(_0x2a3b8d)) {
+      const _0x52b2b8 = new Date(_0x2a3b8d, 0, 1);
+      return _0x52b2b8.toLocaleDateString('en-US', {
+        month: 'short',
+        year: 'numeric'
+      });
+    }
+    return String(_0x2a1e0a);
+  }
+  return 'N/A';
+}
 function toggleSearch() {
   const _0x11109f = document.getElementById("searchToggle");
   _0x11109f.style.display = _0x11109f.style.display === "block" ? "none" : "inline-block";
@@ -68,27 +91,29 @@ function searchTmdb(_0x2550f3, _0x3bd1a3) {
     if (_0x46355f && _0x46355f.results && _0x46355f.results.length > 0x0) {
       totalSearchResults = parseInt(_0x46355f.total_results || 0x0);
       const _0x4fe77a = _0x46355f.results.filter(_0x3f3267 => _0x3f3267.media_type === 'movie' || _0x3f3267.media_type === 'tv').map(_0x3f3267 => {
-        const _0x4d7f2f = _0x3f3267.media_type;
-        return fetch(TMDB_API_BASE + "/" + _0x4d7f2f + "/" + _0x3f3267.id + "/external_ids?api_key=" + TMDB_API_KEY).then(_0x17a8b3 => _0x17a8b3.json()).then(_0x1102a5 => {
-          const _0x5aee63 = _0x4d7f2f === 'tv' ? _0x3f3267.name : _0x3f3267.title;
-          const _0x25644a = _0x4d7f2f === 'tv' ? _0x3f3267.first_air_date : _0x3f3267.release_date;
-          return {
-            'Title': _0x5aee63 || 'Unknown',
-            'Year': (_0x25644a || '').split('-')[0x0] || 'N/A',
-            'Poster': _0x3f3267.poster_path ? TMDB_IMAGE_BASE + _0x3f3267.poster_path : '',
-            'imdbID': _0x1102a5 ? _0x1102a5.imdb_id : '',
-            'Genres': '',
-            'tmdbId': _0x3f3267.id,
-            'mediaType': _0x4d7f2f,
-            'useTmdb': _0x4d7f2f === 'tv'
-          };
-        })['catch'](() => ({
-          'Title': _0x4d7f2f === 'tv' ? _0x3f3267.name : _0x3f3267.title,
-          'Year': (_0x4d7f2f === 'tv' ? _0x3f3267.first_air_date : _0x3f3267.release_date || '').split('-')[0x0] || 'N/A',
+      const _0x4d7f2f = _0x3f3267.media_type;
+      return fetch(TMDB_API_BASE + "/" + _0x4d7f2f + "/" + _0x3f3267.id + "/external_ids?api_key=" + TMDB_API_KEY).then(_0x17a8b3 => _0x17a8b3.json()).then(_0x1102a5 => {
+        const _0x5aee63 = _0x4d7f2f === 'tv' ? _0x3f3267.name : _0x3f3267.title;
+        const _0x25644a = _0x4d7f2f === 'tv' ? _0x3f3267.first_air_date : _0x3f3267.release_date;
+        return {
+          'Title': _0x5aee63 || 'Unknown',
+          'Year': (_0x25644a || '').split('-')[0x0] || 'N/A',
+          'ReleaseDate': _0x25644a || '',
           'Poster': _0x3f3267.poster_path ? TMDB_IMAGE_BASE + _0x3f3267.poster_path : '',
-          'imdbID': '',
+          'imdbID': _0x1102a5 ? _0x1102a5.imdb_id : '',
           'Genres': '',
           'tmdbId': _0x3f3267.id,
+          'mediaType': _0x4d7f2f,
+          'useTmdb': _0x4d7f2f === 'tv'
+        };
+      })['catch'](() => ({
+        'Title': _0x4d7f2f === 'tv' ? _0x3f3267.name : _0x3f3267.title,
+        'Year': (_0x4d7f2f === 'tv' ? _0x3f3267.first_air_date : _0x3f3267.release_date || '').split('-')[0x0] || 'N/A',
+        'ReleaseDate': _0x4d7f2f === 'tv' ? _0x3f3267.first_air_date : _0x3f3267.release_date || '',
+        'Poster': _0x3f3267.poster_path ? TMDB_IMAGE_BASE + _0x3f3267.poster_path : '',
+        'imdbID': '',
+        'Genres': '',
+        'tmdbId': _0x3f3267.id,
           'mediaType': _0x4d7f2f,
           'useTmdb': _0x4d7f2f === 'tv'
         }));
@@ -141,6 +166,18 @@ function searchFilters(_0x3bd1a3) {
     _0x2f3039 = _0x2f3039.filter(_0x3a7fda => {
       const _0x46c0f0 = parseInt(_0x3a7fda.Year || '0');
       return !_0x46c0f0 || _0x46c0f0 <= _0x3f0f1d;
+    });
+    const _0x2c3f1a = new Date();
+    const _0x48c07a = new Date(_0x2c3f1a.getFullYear(), _0x2c3f1a.getMonth(), _0x2c3f1a.getDate());
+    _0x2f3039 = _0x2f3039.filter(_0x4ef3bb => {
+      if (!_0x4ef3bb.ReleaseDate) {
+        return true;
+      }
+      const _0x13d6e4 = new Date(_0x4ef3bb.ReleaseDate);
+      if (isNaN(_0x13d6e4)) {
+        return true;
+      }
+      return _0x13d6e4 <= _0x48c07a;
     });
     _0x2f3039.sort((_0x11a3b6, _0x319c30) => {
       const _0x48f0e5 = parseInt(_0x11a3b6.Year || '0');
@@ -235,7 +272,7 @@ function buildMovieCard(_0x29dd33) {
   _0x50d7cd.appendChild(_0x2bdf5c);
   let _0x24c4c6 = document.createElement('p');
   _0x24c4c6.className = 'movie-year';
-  _0x24c4c6.textContent = "Year: " + _0x29dd33.Year;
+  _0x24c4c6.textContent = "Released: " + formatReleaseText(_0x29dd33.ReleaseDate || '', _0x29dd33.Year);
   _0x50d7cd.appendChild(_0x24c4c6);
   if (_0x29dd33.Genres) {
     let _0x6c2f1d = document.createElement('p');
@@ -491,7 +528,7 @@ function showMovieDetails(_0x24629a, _0x459565 = true, _0x5ece73 = 0x1, _0x2e33e
       };
       totalSeasonsCount = 0x0;
       document.getElementById("detailTitle").textContent = _0x1a3fb0.name || _0x2e33e8.Title || 'Unknown';
-      document.getElementById('detailYear').textContent = (_0x1a3fb0.first_air_date || '').split('-')[0] || _0x2e33e8.Year || 'N/A';
+      document.getElementById('detailYear').textContent = formatReleaseText(_0x1a3fb0.first_air_date || '', _0x2e33e8.Year || 'N/A');
       document.getElementById("detailPlot").textContent = _0x1a3fb0.overview || '';
       document.getElementById("detailGenre").textContent = _0x1a3fb0.genres ? _0x1a3fb0.genres.map(_0x2d1f29 => _0x2d1f29.name).join(', ') : (_0x2e33e8.Genres || '');
       document.getElementById("detailCountry").textContent = _0x1a3fb0.origin_country ? _0x1a3fb0.origin_country.join(', ') : '';
@@ -584,7 +621,7 @@ function showMovieDetails(_0x24629a, _0x459565 = true, _0x5ece73 = 0x1, _0x2e33e
     currentMovieData = _0x37197d || {};
     totalSeasonsCount = 0x0;
     document.getElementById("detailTitle").textContent = _0x37197d.Title || 'Unknown';
-    document.getElementById('detailYear').textContent = _0x37197d.Year || 'N/A';
+    document.getElementById('detailYear').textContent = formatReleaseText(_0x37197d.Released || '', _0x37197d.Year || 'N/A');
     document.getElementById("detailPlot").textContent = _0x37197d.Plot || '';
     document.getElementById("detailGenre").textContent = _0x37197d.Genre || '';
     document.getElementById("detailCountry").textContent = _0x37197d.Country || '';
@@ -690,9 +727,11 @@ function loadSimilarTitles(_0x5c4a25) {
           if (!_0x1feac1 || !_0x1feac1.imdb_id) {
             return null;
           }
+          const _0x1ff38e = _0x3e82c4 === 'tv' ? _0x4b30c0.first_air_date : _0x4b30c0.release_date;
           return {
             'Title': _0x3e82c4 === 'tv' ? _0x4b30c0.name : _0x4b30c0.title,
             'Year': (_0x3e82c4 === 'tv' ? _0x4b30c0.first_air_date : _0x4b30c0.release_date || '').split('-')[0x0] || 'N/A',
+            'ReleaseDate': _0x1ff38e || '',
             'Poster': _0x4b30c0.poster_path ? TMDB_IMAGE_BASE + _0x4b30c0.poster_path : '',
             'imdbID': _0x1feac1.imdb_id
           };
@@ -830,6 +869,7 @@ function loadSimilarTitlesFromTmdb(_0x1b2b8f) {
         return {
           'Title': _0x4b30c0.name,
           'Year': (_0x4b30c0.first_air_date || '').split('-')[0x0] || 'N/A',
+          'ReleaseDate': _0x4b30c0.first_air_date || '',
           'Poster': _0x4b30c0.poster_path ? TMDB_IMAGE_BASE + _0x4b30c0.poster_path : '',
           'imdbID': _0x1feac1 ? _0x1feac1.imdb_id : ''
         };

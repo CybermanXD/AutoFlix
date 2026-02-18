@@ -57,9 +57,11 @@ jobs:
               const detailRes = await fetch(`${TMDB_API_BASE}/${detailType}/${id}?api_key=${TMDB_API_KEY}`);
               const detailJson = await detailRes.json();
               const genres = detailJson && detailJson.genres ? detailJson.genres.map(g => g.name).join(', ') : '';
+              const releaseDate = type === 'tv' || type === 'anime' ? item.first_air_date : item.release_date;
               return {
                 Title: type === 'tv' || type === 'anime' ? item.name : item.title,
                 Year: (type === 'tv' || type === 'anime' ? item.first_air_date : item.release_date || '').split('-')[0] || 'N/A',
+                ReleaseDate: releaseDate || '',
                 Poster: item.poster_path ? `${TMDB_IMAGE_BASE}${item.poster_path}` : '',
                 imdbID: extJson.imdb_id,
                 Genres: genres,
