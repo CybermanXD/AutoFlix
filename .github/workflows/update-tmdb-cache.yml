@@ -62,7 +62,10 @@ jobs:
                 Year: (type === 'tv' || type === 'anime' ? item.first_air_date : item.release_date || '').split('-')[0] || 'N/A',
                 Poster: item.poster_path ? `${TMDB_IMAGE_BASE}${item.poster_path}` : '',
                 imdbID: extJson.imdb_id,
-                Genres: genres
+                Genres: genres,
+                tmdbId: id,
+                mediaType: detailType,
+                useTmdb: type === 'anime'
               };
             }));
             return mapped.filter(Boolean);

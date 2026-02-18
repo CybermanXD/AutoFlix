@@ -97,7 +97,7 @@ function buildMovieCard(_0x29dd33) {
   const _0x50d7cd = document.createElement('div');
   _0x50d7cd.className = "movie-item";
   _0x50d7cd.onclick = () => {
-    showMovieDetails(_0x29dd33.imdbID);
+    showMovieDetails(_0x29dd33.imdbID, true, 0x1, _0x29dd33);
   };
   if (_0x29dd33.Poster && _0x29dd33.Poster !== 'N/A') {
     let _0x1f40a1 = document.createElement("img");
@@ -327,28 +327,108 @@ function changeSearchPage(_0x527d7a) {
   currentSearchPage += _0x527d7a;
   searchMovies(currentSearchKeyword, currentSearchPage);
 }
-function showMovieDetails(_0x24629a, _0x459565 = true, _0x5ece73 = 0x1) {
-  fetch("https://www.omdbapi.com/?apikey=45e48b11&i=" + _0x24629a + "&plot=full").then(_0x24f40b => _0x24f40b.json()).then(_0x37197d => {
-    currentMovieData = _0x37197d;
+function showMovieDetails(_0x24629a, _0x459565 = true, _0x5ece73 = 0x1, _0x2e33e8 = null) {
+  if (_0x2e33e8 && _0x2e33e8.useTmdb && _0x2e33e8.tmdbId) {
+    fetch(TMDB_API_BASE + "/tv/" + _0x2e33e8.tmdbId + "?api_key=" + TMDB_API_KEY).then(_0x27e84f => _0x27e84f.json()).then(_0x1a3fb0 => {
+      currentMovieData = _0x1a3fb0 || {};
+      totalSeasonsCount = 0x0;
+      document.getElementById("detailTitle").textContent = _0x1a3fb0.name || _0x2e33e8.Title || 'Unknown';
+      document.getElementById('detailYear').textContent = (_0x1a3fb0.first_air_date || '').split('-')[0] || _0x2e33e8.Year || 'N/A';
+      document.getElementById("detailPlot").textContent = _0x1a3fb0.overview || '';
+      document.getElementById("detailGenre").textContent = _0x1a3fb0.genres ? _0x1a3fb0.genres.map(_0x2d1f29 => _0x2d1f29.name).join(', ') : (_0x2e33e8.Genres || '');
+      document.getElementById("detailCountry").textContent = _0x1a3fb0.origin_country ? _0x1a3fb0.origin_country.join(', ') : '';
+      document.getElementById("detailActors").textContent = '';
+      document.getElementById("detailRating").innerHTML = _0x2e33e8.imdbID ? "<a href=\"https://www.imdb.com/title/" + _0x2e33e8.imdbID + "\" target=\"_blank\">IMDB Rating: N/A</a>" : '';
+      document.getElementById("detailPoster").src = _0x1a3fb0.poster_path ? TMDB_IMAGE_BASE + _0x1a3fb0.poster_path : (_0x2e33e8.Poster || '');
+      document.getElementById("actionButtons").innerHTML = '';
+      document.getElementById('episodesSection').style.display = 'block';
+      let _0x566eaa = document.getElementById('seasonSelect');
+      _0x566eaa.innerHTML = '';
+      totalSeasonsCount = Number(_0x1a3fb0.number_of_seasons || 0x0);
+      for (let _0x421209 = 0x1; _0x421209 <= totalSeasonsCount; _0x421209++) {
+        let _0x57753d = document.createElement("option");
+        _0x57753d.value = _0x421209;
+        _0x57753d.textContent = "Season " + _0x421209;
+        _0x566eaa.appendChild(_0x57753d);
+      }
+      _0x566eaa.value = _0x5ece73;
+      _0x566eaa.onchange = () => {
+        const _0x26486a = _0x566eaa.value;
+        currentTvSeason = _0x26486a;
+        if (_0x2e33e8.imdbID) {
+          loadEpisodes(_0x2e33e8.imdbID, _0x26486a);
+        }
+      };
+      if (_0x2e33e8.imdbID) {
+        loadEpisodes(_0x2e33e8.imdbID, _0x5ece73);
+      }
+      if (_0x2e33e8.imdbID) {
+        loadSimilarTitles({
+          Type: 'series',
+          imdbID: _0x2e33e8.imdbID
+        });
+      }
+      if (currentOpenOptions) {
+        currentOpenOptions.remove();
+        currentOpenOptions = null;
+      }
+      if (_0x459565) {
+        let _0x2bf471 = "#detailView?id=" + (_0x2e33e8.imdbID || _0x24629a);
+        _0x2bf471 += '&season=' + _0x5ece73;
+        history.pushState({
+          'view': 'detailView',
+          'imdbID': _0x2e33e8.imdbID || _0x24629a,
+          'season': _0x5ece73
+        }, '', _0x2bf471);
+      }
+      switchView("detailView", false);
+    })['catch'](_0x5de6b3 => {
+      console.error(_0x5de6b3);
+    });
+    return;
+  }
+  const _0x2db4f8 = ['movie', 'series', 'episode'];
+  const _0x1c6b12 = (_0x1b5ae2 = null) => {
+    const _0x58b7b6 = _0x1b5ae2 ? "&type=" + _0x1b5ae2 : '';
+    return fetch("https://www.omdbapi.com/?apikey=45e48b11&i=" + _0x24629a + "&plot=full" + _0x58b7b6).then(_0x4a6bd3 => _0x4a6bd3.json());
+  };
+  const _0x59f4a2 = async () => {
+    let _0x2f9b55 = await _0x1c6b12();
+    if (_0x2f9b55 && _0x2f9b55.Type) {
+      return _0x2f9b55;
+    }
+    for (const _0x1f0e46 of _0x2db4f8) {
+      _0x2f9b55 = await _0x1c6b12(_0x1f0e46);
+      if (_0x2f9b55 && _0x2f9b55.Type) {
+        return _0x2f9b55;
+      }
+    }
+    return _0x2f9b55;
+  };
+  _0x59f4a2().then(_0x37197d => {
+    currentMovieData = _0x37197d || {};
     totalSeasonsCount = 0x0;
-    document.getElementById("detailTitle").textContent = _0x37197d.Title;
-    document.getElementById('detailYear').textContent = _0x37197d.Year;
-    document.getElementById("detailPlot").textContent = _0x37197d.Plot;
-    document.getElementById("detailGenre").textContent = _0x37197d.Genre;
-    document.getElementById("detailCountry").textContent = _0x37197d.Country;
-    document.getElementById("detailActors").textContent = _0x37197d.Actors;
-    document.getElementById("detailRating").innerHTML = "<a href=\"https://www.imdb.com/title/" + _0x37197d.imdbID + "\" target=\"_blank\">IMDB Rating: " + _0x37197d.imdbRating + '</a>';
+    document.getElementById("detailTitle").textContent = _0x37197d.Title || 'Unknown';
+    document.getElementById('detailYear').textContent = _0x37197d.Year || 'N/A';
+    document.getElementById("detailPlot").textContent = _0x37197d.Plot || '';
+    document.getElementById("detailGenre").textContent = _0x37197d.Genre || '';
+    document.getElementById("detailCountry").textContent = _0x37197d.Country || '';
+    document.getElementById("detailActors").textContent = _0x37197d.Actors || '';
+    document.getElementById("detailRating").innerHTML = _0x37197d.imdbID ? "<a href=\"https://www.imdb.com/title/" + _0x37197d.imdbID + "\" target=\"_blank\">IMDB Rating: " + (_0x37197d.imdbRating || 'N/A') + '</a>' : '';
     document.getElementById("detailPoster").src = _0x37197d.Poster && _0x37197d.Poster !== "N/A" ? _0x37197d.Poster : '';
     document.getElementById("actionButtons").innerHTML = '';
-    if (_0x37197d.Type.toLowerCase() !== 'series') {
+    const _0x58b5c7 = (_0x37197d.Type || '').toLowerCase();
+    if (_0x58b5c7 !== 'series') {
       let _0x44a88f = document.createElement("button");
       _0x44a88f.textContent = "Watch Now";
       _0x44a88f.onclick = () => {
-        watchMovieEmbed(_0x37197d.imdbID);
+        if (_0x37197d.imdbID) {
+          watchMovieEmbed(_0x37197d.imdbID);
+        }
       };
       document.getElementById('actionButtons').appendChild(_0x44a88f);
     }
-    if (_0x37197d.Type.toLowerCase() === "series" && _0x37197d.totalSeasons) {
+    if (_0x58b5c7 === "series" && _0x37197d.totalSeasons) {
       document.getElementById('episodesSection').style.display = 'block';
       let _0x566eaa = document.getElementById('seasonSelect');
       _0x566eaa.innerHTML = '';
@@ -369,14 +449,16 @@ function showMovieDetails(_0x24629a, _0x459565 = true, _0x5ece73 = 0x1) {
     } else {
       document.getElementById('episodesSection').style.display = "none";
     }
-    loadSimilarTitles(_0x37197d);
+    if (_0x37197d && _0x37197d.imdbID) {
+      loadSimilarTitles(_0x37197d);
+    }
     if (currentOpenOptions) {
       currentOpenOptions.remove();
       currentOpenOptions = null;
     }
     if (_0x459565) {
       let _0x2bf471 = "#detailView?id=" + _0x24629a;
-      if (_0x37197d.Type.toLowerCase() === 'series') {
+      if (_0x58b5c7 === 'series') {
         _0x2bf471 += '&season=' + _0x5ece73;
       }
       history.pushState({
