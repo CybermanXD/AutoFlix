@@ -24,7 +24,7 @@ jobs:
 
       - name: Build cache payloads
         run: |
-          node -e "
+          node <<'NODE'
           const fs = require('fs');
           const fetch = global.fetch;
           const TMDB_API_BASE = 'https://api.themoviedb.org/3';
@@ -74,11 +74,11 @@ jobs:
             fs.writeFileSync('latest-movies.json', JSON.stringify(moviesPayload, null, 2));
             fs.writeFileSync('latest-tv.json', JSON.stringify(tvPayload, null, 2));
           })();
-          "
+          NODE
 
       - name: Upload to Supabase Storage
         run: |
-          node -e "
+          node <<'NODE'
           const fs = require('fs');
           const fetch = global.fetch;
           const SUPABASE_URL = process.env.SUPABASE_URL;
@@ -110,4 +110,4 @@ jobs:
             await uploadObject('latest-movies.json', 'latest-movies.json');
             await uploadObject('latest-tv.json', 'latest-tv.json');
           })();
-          "
+          NODE
