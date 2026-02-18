@@ -24,6 +24,7 @@ let currentOpenOptions = null;
 let currentTvSeason = '';
 let currentTvEpisode = '';
 let currentEmbedServer = "vidsrc";
+let currentTmdbId = '';
 let currentEpisodeMap = null;
 let currentEpisodeIds = [];
 let isEpisodeLoading = false;
@@ -45,48 +46,164 @@ function performSearch(_0x555fed = 0x1) {
   }
   currentSearchKeyword = _0x19c297;
   currentSearchPage = _0x555fed;
-  searchMovies(_0x19c297, _0x555fed);
+  searchTmdb(_0x19c297, _0x555fed);
 }
-function searchMovies(_0x2550f3, _0x3bd1a3) {
+function applySearchFilters() {
+  const _0x19c297 = document.getElementById("searchInput");
+  if (_0x19c297) {
+    _0x19c297.value = '';
+  }
+  currentSearchKeyword = '';
+  currentSearchPage = 0x1;
+  searchFilters(0x1);
+}
+function searchTmdb(_0x2550f3, _0x3bd1a3) {
   const _0x4a4ef3 = document.getElementById("searchResults");
+  const _0x1f2c44 = document.getElementById('searchHeader');
   _0x4a4ef3.innerHTML = "<p>Searching...</p>";
-  fetch("https://www.omdbapi.com/?apikey=d17f7c1a&s=" + encodeURIComponent(_0x2550f3) + '&page=' + _0x3bd1a3).then(_0xcb0b4f => _0xcb0b4f.json()).then(_0x46355f => {
-    _0x4a4ef3.innerHTML = '';
-    document.getElementById('searchHeader').textContent = "Search Results for \"" + _0x2550f3 + "\"";
-    if (_0x46355f.Response === "True") {
-      totalSearchResults = parseInt(_0x46355f.totalResults);
-      const _0x4fe77a = _0x46355f.Search.map(_0x3f3267 => {
-        return fetch("https://www.omdbapi.com/?apikey=d17f7c1a&i=" + _0x3f3267.imdbID).then(_0x17a8b3 => _0x17a8b3.json()).then(_0x1102a5 => {
+  fetch(TMDB_API_BASE + "/search/multi?api_key=" + TMDB_API_KEY + "&query=" + encodeURIComponent(_0x2550f3) + "&page=" + _0x3bd1a3).then(_0xcb0b4f => _0xcb0b4f.json()).then(_0x46355f => {
+    if (_0x1f2c44) {
+      _0x1f2c44.textContent = "Search Results for \"" + _0x2550f3 + "\"";
+    }
+    if (_0x46355f && _0x46355f.results && _0x46355f.results.length > 0x0) {
+      totalSearchResults = parseInt(_0x46355f.total_results || 0x0);
+      const _0x4fe77a = _0x46355f.results.filter(_0x3f3267 => _0x3f3267.media_type === 'movie' || _0x3f3267.media_type === 'tv').map(_0x3f3267 => {
+        const _0x4d7f2f = _0x3f3267.media_type;
+        return fetch(TMDB_API_BASE + "/" + _0x4d7f2f + "/" + _0x3f3267.id + "/external_ids?api_key=" + TMDB_API_KEY).then(_0x17a8b3 => _0x17a8b3.json()).then(_0x1102a5 => {
+          const _0x5aee63 = _0x4d7f2f === 'tv' ? _0x3f3267.name : _0x3f3267.title;
+          const _0x25644a = _0x4d7f2f === 'tv' ? _0x3f3267.first_air_date : _0x3f3267.release_date;
           return {
-            'Title': _0x3f3267.Title,
-            'Year': _0x3f3267.Year,
-            'Poster': _0x3f3267.Poster,
-            'imdbID': _0x3f3267.imdbID,
-            'Genres': _0x1102a5 && _0x1102a5.Genre ? _0x1102a5.Genre : ''
+            'Title': _0x5aee63 || 'Unknown',
+            'Year': (_0x25644a || '').split('-')[0x0] || 'N/A',
+            'Poster': _0x3f3267.poster_path ? TMDB_IMAGE_BASE + _0x3f3267.poster_path : '',
+            'imdbID': _0x1102a5 ? _0x1102a5.imdb_id : '',
+            'Genres': '',
+            'tmdbId': _0x3f3267.id,
+            'mediaType': _0x4d7f2f,
+            'useTmdb': _0x4d7f2f === 'tv'
           };
         })['catch'](() => ({
-          'Title': _0x3f3267.Title,
-          'Year': _0x3f3267.Year,
-          'Poster': _0x3f3267.Poster,
-          'imdbID': _0x3f3267.imdbID,
-          'Genres': ''
+          'Title': _0x4d7f2f === 'tv' ? _0x3f3267.name : _0x3f3267.title,
+          'Year': (_0x4d7f2f === 'tv' ? _0x3f3267.first_air_date : _0x3f3267.release_date || '').split('-')[0x0] || 'N/A',
+          'Poster': _0x3f3267.poster_path ? TMDB_IMAGE_BASE + _0x3f3267.poster_path : '',
+          'imdbID': '',
+          'Genres': '',
+          'tmdbId': _0x3f3267.id,
+          'mediaType': _0x4d7f2f,
+          'useTmdb': _0x4d7f2f === 'tv'
         }));
       });
       Promise.all(_0x4fe77a).then(_0x57a7ce => {
-        _0x57a7ce.forEach(_0x29dd33 => {
+        _0x4a4ef3.innerHTML = '';
+        const _0x4d0a13 = (_0x3bd1a3 - 0x1) * HOME_PAGE_SIZE;
+        const _0x2fd7ae = _0x57a7ce.slice(_0x4d0a13, _0x4d0a13 + HOME_PAGE_SIZE);
+        _0x2fd7ae.forEach(_0x29dd33 => {
           _0x4a4ef3.appendChild(buildMovieCard(_0x29dd33));
         });
+        updateSearchPagination();
       });
     } else {
       _0x4a4ef3.innerHTML = "<p>No results found.</p>";
     }
-    updateSearchPagination();
     history.pushState({
       'view': "searchView",
       'query': _0x2550f3,
       'page': _0x3bd1a3
     }, '', "#searchView?query=" + encodeURIComponent(_0x2550f3) + "&page=" + _0x3bd1a3);
     switchView("searchView", false);
+  })["catch"](_0x23184b => {
+    console.error(_0x23184b);
+    _0x4a4ef3.innerHTML = "<p>Error searching movies.</p>";
+  });
+}
+function searchFilters(_0x3bd1a3) {
+  const _0x4a4ef3 = document.getElementById("searchResults");
+  const _0x1f2b55 = document.getElementById('searchTypeFilter');
+  const _0x3f0f1d = document.getElementById('searchSortFilter');
+  const _0x5d1d27 = _0x1f2b55 ? _0x1f2b55.value : 'all';
+  const _0x52b1a1 = _0x3f0f1d ? _0x3f0f1d.value : 'new';
+  const _0x5b9a76 = _0x52b1a1 !== 'new' && _0x52b1a1 !== 'old' ? _0x52b1a1 : '';
+  const _0x2a6c30 = _0x52b1a1 === 'old' ? 'old' : 'new';
+  const _0x1f2c44 = document.getElementById('searchHeader');
+  if (_0x1f2c44) {
+    _0x1f2c44.textContent = 'Filtered Results';
+  }
+  _0x4a4ef3.innerHTML = "<p>Searching...</p>";
+  const _0x4b2f59 = [];
+  const _0x1a9c3c = () => {
+    const _0x2e2a1c = _0x4b2f59.flat();
+    let _0x2f3039 = _0x2e2a1c;
+    if (_0x5b9a76) {
+      _0x2f3039 = _0x2f3039.filter(_0x2f77a4 => (_0x2f77a4.Genres || '').toLowerCase().includes(_0x5b9a76));
+    }
+    _0x2f3039 = _0x2f3039.filter(_0x1b3f92 => _0x1b3f92.Title && _0x1b3f92.imdbID);
+    _0x2f3039.sort((_0x11a3b6, _0x319c30) => {
+      const _0x48f0e5 = parseInt(_0x11a3b6.Year || '0');
+      const _0x1b3bd4 = parseInt(_0x319c30.Year || '0');
+      return _0x2a6c30 === 'old' ? _0x48f0e5 - _0x1b3bd4 : _0x1b3bd4 - _0x48f0e5;
+    });
+    _0x4a4ef3.innerHTML = '';
+    if (_0x2f3039.length === 0x0) {
+      _0x4a4ef3.innerHTML = "<p>No results found.</p>";
+      return;
+    }
+    totalSearchResults = _0x2f3039.length;
+    currentSearchPage = _0x3bd1a3;
+    const _0x4d0a13 = (_0x3bd1a3 - 0x1) * HOME_PAGE_SIZE;
+    const _0x2fd7ae = _0x2f3039.slice(_0x4d0a13, _0x4d0a13 + HOME_PAGE_SIZE);
+    _0x2fd7ae.forEach(_0x29dd33 => {
+      _0x4a4ef3.appendChild(buildMovieCard(_0x29dd33));
+    });
+    updateSearchPagination();
+  };
+  const _0x3d0c0b = (_0x17d53b) => {
+    if (!_0x17d53b || !_0x17d53b.pages) {
+      return [];
+    }
+    return Object.values(_0x17d53b.pages).flat();
+  };
+  const _0x5e3a5e = (_0x1a59e1, _0x3c0dbf) => {
+    const _0x3afc9f = _0x3d0c0b(_0x1a59e1).filter(_0x1a5ed0 => _0x1a5ed0.imdbID && _0x1a5ed0.Title);
+    return _0x3afc9f.map(_0x1a5ed0 => ({
+      ..._0x1a5ed0,
+      useTmdb: _0x3c0dbf === 'anime'
+    }));
+  };
+  const _0x3f5d8b = [];
+  if (_0x5d1d27 === 'all' || _0x5d1d27 === 'movies') {
+    _0x3f5d8b.push(fetch(SUPABASE_LATEST_MOVIES_URL).then(_0x1a1f0f => _0x1a1f0f.json()).then(_0x2a8d9a => {
+      _0x4b2f59.push(_0x5e3a5e(_0x2a8d9a, 'movies'));
+    }));
+  }
+  if (_0x5d1d27 === 'all' || _0x5d1d27 === 'shows') {
+    _0x3f5d8b.push(fetch(SUPABASE_LATEST_TV_URL).then(_0x3a4f4e => _0x3a4f4e.json()).then(_0x2a93f2 => {
+      _0x4b2f59.push(_0x5e3a5e(_0x2a93f2, 'shows'));
+    }));
+  }
+  if (_0x5d1d27 === 'all' || _0x5d1d27 === 'anime') {
+    _0x3f5d8b.push(fetch(SUPABASE_LATEST_ANIME_URL).then(_0x3a5f2b => _0x3a5f2b.json()).then(_0x2b8a6b => {
+      _0x4b2f59.push(_0x5e3a5e(_0x2b8a6b, 'anime'));
+    }));
+  }
+  Promise.all(_0x3f5d8b).then(() => {
+    _0x1a9c3c();
+    const _0x2a8f3c = new URLSearchParams();
+    _0x2a8f3c.set('page', _0x3bd1a3);
+    _0x2a8f3c.set('type', _0x5d1d27);
+    _0x2a8f3c.set('sort', _0x52b1a1);
+    if (_0x5b9a76) {
+      _0x2a8f3c.set('genre', _0x5b9a76);
+    }
+    const _0x1da6ac = "#filterView?" + _0x2a8f3c.toString();
+    history.pushState({
+      'view': "filterView",
+      'query': '',
+      'page': _0x3bd1a3,
+      'type': _0x5d1d27,
+      'sort': _0x52b1a1,
+      'genre': _0x5b9a76
+    }, '', _0x1da6ac);
+    switchView("filterView", false);
   })["catch"](_0x23184b => {
     console.error(_0x23184b);
     _0x4a4ef3.innerHTML = "<p>Error searching movies.</p>";
@@ -99,6 +216,9 @@ function buildMovieCard(_0x29dd33) {
   _0x50d7cd.onclick = () => {
     showMovieDetails(_0x29dd33.imdbID, true, 0x1, _0x29dd33);
   };
+  if (_0x29dd33 && _0x29dd33.Title) {
+    _0x50d7cd.dataset.title = _0x29dd33.Title;
+  }
   if (_0x29dd33.Poster && _0x29dd33.Poster !== 'N/A') {
     let _0x1f40a1 = document.createElement("img");
     _0x1f40a1.src = _0x29dd33.Poster;
@@ -320,17 +440,50 @@ function setHomeLoading(_0x182112) {
 function updateSearchPagination() {
   const _0x4a1feb = document.getElementById('prevPage');
   const _0x1c21dc = document.getElementById('nextPage');
+  const _0x21c8b5 = document.getElementById('searchPageButtons');
+  const _0x3157a6 = Math.max(0x1, Math.ceil(totalSearchResults / HOME_PAGE_SIZE));
   _0x4a1feb.disabled = currentSearchPage <= 0x1;
-  _0x1c21dc.disabled = currentSearchPage * 0xa >= totalSearchResults;
+  _0x1c21dc.disabled = currentSearchPage >= _0x3157a6;
+  if (!_0x21c8b5) {
+    return;
+  }
+  _0x21c8b5.innerHTML = '';
+  const _0x1ef6c6 = Math.max(0x1, Math.min(currentSearchPage - 0x1, _0x3157a6 - 0x2));
+  const _0x4f63de = Math.min(_0x3157a6, _0x1ef6c6 + 0x2);
+  for (let _0x3b3dd3 = _0x1ef6c6; _0x3b3dd3 <= _0x4f63de; _0x3b3dd3++) {
+    const _0x5f08a6 = document.createElement('button');
+    _0x5f08a6.className = 'page-button';
+    _0x5f08a6.textContent = _0x3b3dd3;
+    _0x5f08a6.onclick = () => {
+      currentSearchPage = _0x3b3dd3;
+      if (currentSearchKeyword && currentSearchKeyword.trim().length > 0x0) {
+        searchTmdb(currentSearchKeyword, currentSearchPage);
+      } else {
+        searchFilters(currentSearchPage);
+      }
+    };
+    if (_0x3b3dd3 === currentSearchPage) {
+      _0x5f08a6.classList.add('active');
+    }
+    _0x21c8b5.appendChild(_0x5f08a6);
+  }
 }
 function changeSearchPage(_0x527d7a) {
   currentSearchPage += _0x527d7a;
-  searchMovies(currentSearchKeyword, currentSearchPage);
+  if (currentSearchKeyword && currentSearchKeyword.trim().length > 0x0) {
+    searchTmdb(currentSearchKeyword, currentSearchPage);
+  } else {
+    searchFilters(currentSearchPage);
+  }
 }
 function showMovieDetails(_0x24629a, _0x459565 = true, _0x5ece73 = 0x1, _0x2e33e8 = null) {
   if (_0x2e33e8 && _0x2e33e8.useTmdb && _0x2e33e8.tmdbId) {
     fetch(TMDB_API_BASE + "/tv/" + _0x2e33e8.tmdbId + "?api_key=" + TMDB_API_KEY).then(_0x27e84f => _0x27e84f.json()).then(_0x1a3fb0 => {
-      currentMovieData = _0x1a3fb0 || {};
+      currentMovieData = {
+        'Title': _0x1a3fb0.name || _0x2e33e8.Title || 'Unknown',
+        'Type': 'series',
+        'imdbID': _0x2e33e8.imdbID || ''
+      };
       totalSeasonsCount = 0x0;
       document.getElementById("detailTitle").textContent = _0x1a3fb0.name || _0x2e33e8.Title || 'Unknown';
       document.getElementById('detailYear').textContent = (_0x1a3fb0.first_air_date || '').split('-')[0] || _0x2e33e8.Year || 'N/A';
@@ -341,6 +494,30 @@ function showMovieDetails(_0x24629a, _0x459565 = true, _0x5ece73 = 0x1, _0x2e33e
       document.getElementById("detailRating").innerHTML = _0x2e33e8.imdbID ? "<a href=\"https://www.imdb.com/title/" + _0x2e33e8.imdbID + "\" target=\"_blank\">IMDB Rating: N/A</a>" : '';
       document.getElementById("detailPoster").src = _0x1a3fb0.poster_path ? TMDB_IMAGE_BASE + _0x1a3fb0.poster_path : (_0x2e33e8.Poster || '');
       document.getElementById("actionButtons").innerHTML = '';
+      if (_0x2e33e8.imdbID) {
+        let _0x44a88f = document.createElement("button");
+        _0x44a88f.textContent = "Watch Now";
+        _0x44a88f.onclick = () => {
+          currentTvSeason = String(_0x5ece73 || 0x1);
+          currentTvEpisode = '1';
+          currentTmdbId = _0x2e33e8.tmdbId;
+          let _0x53ce98 = "#embedViewerView?type=series&id=" + _0x2e33e8.imdbID + "&season=" + currentTvSeason + "&episode=" + currentTvEpisode + '&server=vidsrc&tmdb=' + _0x2e33e8.tmdbId;
+          history.pushState({
+            'view': 'embedViewerView'
+          }, '', _0x53ce98);
+          currentEmbedServer = "vidsrc";
+          currentMovieData = {
+            'Title': _0x1a3fb0.name || _0x2e33e8.Title || 'Unknown',
+            'Type': 'series',
+            'imdbID': _0x2e33e8.imdbID || ''
+          };
+          launchEmbed(_0x2e33e8.imdbID, 'series', "vidsrc", currentTvSeason, currentTvEpisode, {
+            'title': _0x1a3fb0.name || _0x2e33e8.Title || 'Unknown',
+            'skipOmdb': true
+          });
+        };
+        document.getElementById('actionButtons').appendChild(_0x44a88f);
+      }
       document.getElementById('episodesSection').style.display = 'block';
       let _0x566eaa = document.getElementById('seasonSelect');
       _0x566eaa.innerHTML = '';
@@ -355,30 +532,23 @@ function showMovieDetails(_0x24629a, _0x459565 = true, _0x5ece73 = 0x1, _0x2e33e
       _0x566eaa.onchange = () => {
         const _0x26486a = _0x566eaa.value;
         currentTvSeason = _0x26486a;
-        if (_0x2e33e8.imdbID) {
-          loadEpisodes(_0x2e33e8.imdbID, _0x26486a);
-        }
+        loadEpisodesFromTmdb(_0x2e33e8.tmdbId, _0x26486a, _0x2e33e8.imdbID || '');
       };
-      if (_0x2e33e8.imdbID) {
-        loadEpisodes(_0x2e33e8.imdbID, _0x5ece73);
-      }
-      if (_0x2e33e8.imdbID) {
-        loadSimilarTitles({
-          Type: 'series',
-          imdbID: _0x2e33e8.imdbID
-        });
-      }
+      loadEpisodesFromTmdb(_0x2e33e8.tmdbId, _0x5ece73, _0x2e33e8.imdbID || '');
+      loadSimilarTitlesFromTmdb(_0x2e33e8.tmdbId);
       if (currentOpenOptions) {
         currentOpenOptions.remove();
         currentOpenOptions = null;
       }
       if (_0x459565) {
         let _0x2bf471 = "#detailView?id=" + (_0x2e33e8.imdbID || _0x24629a);
-        _0x2bf471 += '&season=' + _0x5ece73;
+        _0x2bf471 += '&season=' + _0x5ece73 + "&tmdb=" + _0x2e33e8.tmdbId + "&type=anime";
         history.pushState({
           'view': 'detailView',
           'imdbID': _0x2e33e8.imdbID || _0x24629a,
-          'season': _0x5ece73
+          'season': _0x5ece73,
+          'tmdbId': _0x2e33e8.tmdbId,
+          'mediaType': 'anime'
         }, '', _0x2bf471);
       }
       switchView("detailView", false);
@@ -553,6 +723,9 @@ function loadEpisodes(_0x216892, _0x26444f) {
     currentEpisodeMap = null;
     currentEpisodeIds = [];
     if (_0x565fbf.Response === "True" && _0x565fbf.Episodes) {
+      const _0x33c1db = _0x565fbf.Episodes.length;
+      _0x1ae536.classList.toggle('three-column', _0x33c1db > 0x28);
+      _0x1ae536.classList.toggle('two-column', _0x33c1db > 0x14 && _0x33c1db <= 0x28);
       currentEpisodeMap = {};
       _0x565fbf.Episodes.forEach(_0x50c0ea => {
         const _0x3f99b8 = String(_0x50c0ea.Episode);
@@ -570,12 +743,114 @@ function loadEpisodes(_0x216892, _0x26444f) {
       populateEpisodeSwitcher();
       updateEpisodeNavButtons();
     } else {
+      _0x1ae536.classList.remove('two-column');
+      _0x1ae536.classList.remove('three-column');
       _0x1ae536.innerHTML = "<li>No episodes found</li>";
       populateSeasonSwitcher();
       populateEpisodeSwitcher();
       updateEpisodeNavButtons();
     }
   })["catch"](console.error);
+}
+function loadEpisodesFromTmdb(_0x2f8bc7, _0x1fd2d3, _0x5c8f0a = '') {
+  const _0x1ae536 = document.getElementById("episodesList");
+  if (!_0x1ae536) {
+    return;
+  }
+  currentTvSeason = String(_0x1fd2d3);
+  if (!currentTvEpisode) {
+    currentTvEpisode = '1';
+  }
+  _0x1ae536.innerHTML = '';
+  currentEpisodeMap = null;
+  currentEpisodeIds = [];
+  fetch(TMDB_API_BASE + "/tv/" + _0x2f8bc7 + "/season/" + _0x1fd2d3 + "?api_key=" + TMDB_API_KEY).then(_0x5d1f1c => _0x5d1f1c.json()).then(_0x2b3a4c => {
+    if (_0x2b3a4c && _0x2b3a4c.episodes && _0x2b3a4c.episodes.length > 0x0) {
+      const _0x1e5b57 = _0x2b3a4c.episodes.length;
+      _0x1ae536.classList.toggle('three-column', _0x1e5b57 > 0x28);
+      _0x1ae536.classList.toggle('two-column', _0x1e5b57 > 0x14 && _0x1e5b57 <= 0x28);
+      currentEpisodeMap = {};
+      _0x2b3a4c.episodes.forEach(_0x50c0ea => {
+        const _0x3f99b8 = String(_0x50c0ea.episode_number);
+        currentEpisodeMap[_0x3f99b8] = _0x50c0ea;
+        currentEpisodeIds.push(_0x3f99b8);
+        let _0x66c16 = document.createElement('li');
+        _0x66c16.textContent = "Episode " + _0x50c0ea.episode_number + " - " + _0x50c0ea.name;
+        _0x66c16.onclick = function (_0x413eed) {
+          _0x413eed.stopPropagation();
+          if (_0x5c8f0a) {
+            showEpisodeOptions(this, _0x5c8f0a, _0x1fd2d3, _0x50c0ea.episode_number);
+          }
+        };
+        _0x1ae536.appendChild(_0x66c16);
+      });
+      populateSeasonSwitcher();
+      populateEpisodeSwitcher();
+      updateEpisodeNavButtons();
+    } else {
+      _0x1ae536.classList.remove('two-column');
+      _0x1ae536.classList.remove('three-column');
+      _0x1ae536.innerHTML = "<li>No episodes found</li>";
+      populateSeasonSwitcher();
+      populateEpisodeSwitcher();
+      updateEpisodeNavButtons();
+    }
+  })['catch'](_0x2f2cda => {
+    console.error(_0x2f2cda);
+    _0x1ae536.innerHTML = "<li>Error loading episodes</li>";
+  });
+}
+
+function loadSimilarTitlesFromTmdb(_0x1b2b8f) {
+  const _0x39a6db = document.getElementById('similarResults');
+  const _0x2b6f4d = document.getElementById('similarLoading');
+  if (!_0x39a6db) {
+    return;
+  }
+  if (_0x2b6f4d) {
+    _0x2b6f4d.style.display = 'block';
+  }
+  _0x39a6db.innerHTML = '';
+  fetch(TMDB_API_BASE + "/tv/" + _0x1b2b8f + "/recommendations?api_key=" + TMDB_API_KEY).then(_0x8f0c7 => _0x8f0c7.json()).then(_0x8d64c5 => {
+    if (!_0x8d64c5 || !_0x8d64c5.results || _0x8d64c5.results.length === 0x0) {
+      if (_0x2b6f4d) {
+        _0x2b6f4d.style.display = 'none';
+      }
+      _0x39a6db.innerHTML = "<p>No similar titles found.</p>";
+      return;
+    }
+    const _0x7a0d62 = _0x8d64c5.results.slice(0x0, 0xc);
+    const _0x373ea4 = _0x7a0d62.map(_0x4b30c0 => {
+      return fetch(TMDB_API_BASE + "/tv/" + _0x4b30c0.id + "/external_ids?api_key=" + TMDB_API_KEY).then(_0x2b2e03 => _0x2b2e03.json()).then(_0x1feac1 => {
+        return {
+          'Title': _0x4b30c0.name,
+          'Year': (_0x4b30c0.first_air_date || '').split('-')[0x0] || 'N/A',
+          'Poster': _0x4b30c0.poster_path ? TMDB_IMAGE_BASE + _0x4b30c0.poster_path : '',
+          'imdbID': _0x1feac1 ? _0x1feac1.imdb_id : ''
+        };
+      })['catch'](() => null);
+    });
+    Promise.all(_0x373ea4).then(_0x1ef3a6 => {
+      const _0x2f7da5 = _0x1ef3a6.filter(Boolean);
+      if (_0x2b6f4d) {
+        _0x2b6f4d.style.display = 'none';
+      }
+      _0x39a6db.innerHTML = '';
+      if (_0x2f7da5.length === 0x0) {
+        _0x39a6db.innerHTML = "<p>No similar titles found.</p>";
+        return;
+      }
+      _0x2f7da5.forEach(_0x1a9504 => {
+        _0x39a6db.appendChild(buildMovieCard(_0x1a9504));
+      });
+    });
+  })['catch'](_0x3f3dcf => {
+    console.error(_0x3f3dcf);
+    if (_0x2b6f4d) {
+      _0x2b6f4d.style.display = 'none';
+    }
+    _0x39a6db.innerHTML = "<p>Error loading similar titles.</p>";
+  });
 }
 function showEpisodeOptions(_0x42b8b5, _0x5a8139, _0x2f1513, _0x11bc44) {
   if (currentOpenOptions && currentOpenOptions.parentElement !== _0x42b8b5) {
@@ -596,7 +871,10 @@ function showEpisodeOptions(_0x42b8b5, _0x5a8139, _0x2f1513, _0x11bc44) {
       _0x2ecb0f.stopPropagation();
       currentTvSeason = _0x2f1513;
       currentTvEpisode = _0x11bc44;
-      let _0x53ce98 = "#embedViewerView?type=series&id=" + _0x5a8139 + "&season=" + _0x2f1513 + "&episode=" + _0x11bc44 + '&server=vidsrc';
+      if (_0x42b8b5.dataset && _0x42b8b5.dataset.tmdbId) {
+        currentTmdbId = _0x42b8b5.dataset.tmdbId;
+      }
+      let _0x53ce98 = "#embedViewerView?type=series&id=" + _0x5a8139 + "&season=" + _0x2f1513 + "&episode=" + _0x11bc44 + '&server=vidsrc' + (currentTmdbId ? '&tmdb=' + currentTmdbId : '');
       history.pushState({
         'view': 'embedViewerView'
       }, '', _0x53ce98);
@@ -615,12 +893,15 @@ function watchMovieEmbed(_0x3577aa) {
   }, '', _0x26edea);
   launchEmbed(_0x3577aa, "movie", "vidsrc");
 }
-function launchEmbed(_0x2ca902, _0x1f84ec, _0x4cdba6, _0x429c53 = null, _0x4407b5 = null) {
+function launchEmbed(_0x2ca902, _0x1f84ec, _0x4cdba6, _0x429c53 = null, _0x4407b5 = null, _0x11c92e = null) {
   currentEmbedServer = _0x4cdba6;
+  if (_0x11c92e && _0x11c92e.tmdbId) {
+    currentTmdbId = _0x11c92e.tmdbId;
+  }
   let _0xc432cc = '';
   if (_0x1f84ec === 'movie') {
     if (_0x4cdba6 === "vidsrc") {
-      _0xc432cc = "https://vidsrc.cc/v2/embed/movie/" + _0x2ca902 + "?autoPlay=false&quality=360p";
+      _0xc432cc = "https://vidsrcme.ru/embed/movie?imdb=" + _0x2ca902;
     } else {
       if (_0x4cdba6 === '2embed') {
         _0xc432cc = 'https://www.2embed.cc/embed/' + _0x2ca902;
@@ -632,7 +913,7 @@ function launchEmbed(_0x2ca902, _0x1f84ec, _0x4cdba6, _0x429c53 = null, _0x4407b
     }
   } else {
     if (_0x4cdba6 === "vidsrc") {
-      _0xc432cc = "https://vidsrc.cc/v2/embed/tv/" + _0x2ca902 + '/' + _0x429c53 + '/' + _0x4407b5 + '?autoPlay=false&quality=360p';
+      _0xc432cc = "https://vidsrcme.ru/embed/tv?imdb=" + _0x2ca902 + "&season=" + _0x429c53 + "&episode=" + _0x4407b5;
     } else {
       if (_0x4cdba6 === "2embed") {
         _0xc432cc = "https://www.2embed.cc/embedtv/" + _0x2ca902 + "&s=" + _0x429c53 + "&e=" + _0x4407b5;
@@ -655,9 +936,23 @@ function launchEmbed(_0x2ca902, _0x1f84ec, _0x4cdba6, _0x429c53 = null, _0x4407b
     })['catch'](console.error);
   }
   if (_0x1f84ec === 'series' && _0x2ca902 && _0x429c53) {
-    loadEpisodes(_0x2ca902, _0x429c53);
+    if (currentTmdbId) {
+      loadEpisodesFromTmdb(currentTmdbId, _0x429c53, _0x2ca902);
+    } else {
+      loadEpisodes(_0x2ca902, _0x429c53);
+    }
   }
   updateEpisodeNavButtons();
+  if (_0x11c92e && _0x11c92e.skipOmdb) {
+    if (_0x11c92e.title) {
+      currentMovieData = {
+        'Title': _0x11c92e.title,
+        'Type': _0x1f84ec
+      };
+    }
+    showEmbedViewer();
+    return;
+  }
   fetch("https://www.omdbapi.com/?apikey=45e48b11&i=" + _0x2ca902 + "&plot=short").then(_0x1a0254 => _0x1a0254.json()).then(_0x53f800 => {
     currentMovieData = _0x53f800;
     showEmbedViewer();
@@ -670,22 +965,30 @@ function launchEmbed(_0x2ca902, _0x1f84ec, _0x4cdba6, _0x429c53 = null, _0x4407b
     showEmbedViewer();
   });
 }
+function isSeriesLikeEmbed() {
+  const _0x50630a = window.location.hash.split('?')[0x1] || '';
+  const _0x3ee3e8 = new URLSearchParams(_0x50630a);
+  const _0x5a5c30 = _0x3ee3e8.get('type') || '';
+  const _0x1b0a3a = currentMovieData && currentMovieData.Type ? currentMovieData.Type : _0x5a5c30;
+  return (_0x1b0a3a || '').toLowerCase() !== 'movie';
+}
 function showEmbedViewer() {
   const _0x615853 = document.getElementById('serverDropdown');
   if (_0x615853) {
     _0x615853.style.display = 'inline-block';
   }
+  const _0x2dcf50 = isSeriesLikeEmbed();
   const _0x1b7f7c = document.getElementById('seriesOverviewBtn');
   if (_0x1b7f7c) {
-    _0x1b7f7c.style.display = currentMovieData && currentMovieData.Type && currentMovieData.Type.toLowerCase() === 'series' ? 'inline-block' : 'none';
+    _0x1b7f7c.style.display = _0x2dcf50 ? 'inline-block' : 'none';
   }
   const _0x40d1eb = document.getElementById('seasonDropdown');
   if (_0x40d1eb) {
-    _0x40d1eb.style.display = currentMovieData && currentMovieData.Type && currentMovieData.Type.toLowerCase() === 'series' ? 'inline-block' : 'none';
+    _0x40d1eb.style.display = _0x2dcf50 ? 'inline-block' : 'none';
   }
   const _0x1f4e8a = document.getElementById('episodeDropdown');
   if (_0x1f4e8a) {
-    _0x1f4e8a.style.display = currentMovieData && currentMovieData.Type && currentMovieData.Type.toLowerCase() === 'series' ? 'inline-block' : 'none';
+    _0x1f4e8a.style.display = _0x2dcf50 ? 'inline-block' : 'none';
   }
   populateServerMenu();
   updateEpisodeNavButtons();
@@ -755,7 +1058,8 @@ function switchView(_0x17c7a4, _0x233ecc = true) {
   for (let _0x4879a8 of _0x1aae5b) {
     _0x4879a8.classList.remove("active");
   }
-  document.getElementById(_0x17c7a4).classList.add("active");
+  const _0x2b86f6 = _0x17c7a4 === 'filterView' ? 'searchView' : _0x17c7a4;
+  document.getElementById(_0x2b86f6).classList.add("active");
   if (_0x17c7a4 !== "detailView" && currentOpenOptions) {
     currentOpenOptions.remove();
     currentOpenOptions = null;
@@ -771,8 +1075,17 @@ function goToSeriesOverview() {
   const _0x1b6324 = new URLSearchParams(window.location.hash.split('?')[0x1]);
   const _0x1c6a9f = _0x1b6324.get('id');
   const _0x1c3f6e = _0x1b6324.get('season') || currentTvSeason || 0x1;
+  const _0x2f6d55 = _0x1b6324.get('tmdb') || currentTmdbId;
   if (_0x1c6a9f) {
-    showMovieDetails(_0x1c6a9f, true, _0x1c3f6e);
+    if (_0x2f6d55) {
+      showMovieDetails(_0x1c6a9f, true, _0x1c3f6e, {
+        'useTmdb': true,
+        'tmdbId': _0x2f6d55,
+        'imdbID': _0x1c6a9f
+      });
+    } else {
+      showMovieDetails(_0x1c6a9f, true, _0x1c3f6e);
+    }
   } else {
     switchView('homeView');
   }
@@ -791,7 +1104,7 @@ function updateEpisodeNavButtons() {
   }
   const _0x2c7d05 = document.getElementById('prevEpisodeBtn');
   const _0x1ef1d4 = document.getElementById('nextEpisodeBtn');
-  const _0x53f8d1 = currentMovieData && currentMovieData.Type && currentMovieData.Type.toLowerCase() === 'series';
+  const _0x53f8d1 = isSeriesLikeEmbed();
   if (!_0x53f8d1 || !currentTvSeason || !currentTvEpisode) {
     _0x1f3f0d.style.display = 'none';
     return;
@@ -838,7 +1151,10 @@ function navigateEpisode(_0x1e4a19) {
   history.replaceState({
     'view': 'embedViewerView'
   }, '', _0x59e1f7);
-  launchEmbed(_0x1960ce, _0x7f9c8a, _0x4c4f3f, _0x14f2b6.season, _0x14f2b6.episode);
+  launchEmbed(_0x1960ce, _0x7f9c8a, _0x4c4f3f, _0x14f2b6.season, _0x14f2b6.episode, currentTmdbId ? {
+    'tmdbId': currentTmdbId,
+    'skipOmdb': true
+  } : null);
 }
 
 function populateEpisodeSwitcher() {
@@ -848,7 +1164,7 @@ function populateEpisodeSwitcher() {
   if (!_0x23f42a || !_0x28c5b2 || !_0x4e255a) {
     return;
   }
-  const _0x4d69bb = currentMovieData && currentMovieData.Type && currentMovieData.Type.toLowerCase() === 'series';
+  const _0x4d69bb = isSeriesLikeEmbed();
   if (!_0x4d69bb || !currentTvSeason || currentEpisodeIds.length === 0x0) {
     _0x4e255a.style.display = 'none';
     _0x23f42a.innerHTML = '';
@@ -886,7 +1202,7 @@ function populateSeasonSwitcher() {
   if (!_0x2a1d6d || !_0x49a2d1 || !_0x2c03c2) {
     return;
   }
-  const _0x30a2c4 = currentMovieData && currentMovieData.Type && currentMovieData.Type.toLowerCase() === 'series';
+  const _0x30a2c4 = isSeriesLikeEmbed();
   if (!_0x30a2c4 || totalSeasonsCount === 0x0) {
     _0x2c03c2.style.display = 'none';
     _0x2a1d6d.innerHTML = '';
@@ -933,8 +1249,15 @@ function switchSeason(_0x4f4d88) {
   history.replaceState({
     'view': 'embedViewerView'
   }, '', _0x449f5f);
-  loadEpisodes(_0x421f15, _0x4f4b3a);
-  launchEmbed(_0x421f15, _0x3e93b4, _0x5794f2, _0x4f4b3a, '1');
+  if (currentTmdbId) {
+    loadEpisodesFromTmdb(currentTmdbId, _0x4f4b3a, _0x421f15);
+  } else {
+    loadEpisodes(_0x421f15, _0x4f4b3a);
+  }
+  launchEmbed(_0x421f15, _0x3e93b4, _0x5794f2, _0x4f4b3a, '1', currentTmdbId ? {
+    'tmdbId': currentTmdbId,
+    'skipOmdb': true
+  } : null);
 }
 
 function switchEpisode(_0x1d8d9c) {
@@ -966,7 +1289,7 @@ function populateServerMenu() {
   }
   const _0x1c6cd7 = [{
     'value': 'vidsrc',
-    'label': 'vidsrc.cc'
+    'label': 'vidsrcme.ru'
   }, {
     'value': 'embed',
     'label': 'embed.su'
@@ -1105,31 +1428,81 @@ window.addEventListener('load', () => {
   if (_0x53db18 === 'detailView') {
     let _0x2b452d = _0x1dab97.get('id');
     let _0x51e517 = _0x1dab97.get("season") || 0x1;
+    const _0x3dd1e3 = _0x1dab97.get('tmdb');
+    const _0x1d9bc0 = _0x1dab97.get('type');
     if (_0x2b452d) {
-      showMovieDetails(_0x2b452d, false, _0x51e517);
+      if (_0x1d9bc0 === 'anime' && _0x3dd1e3) {
+        showMovieDetails(_0x2b452d, false, _0x51e517, {
+          'useTmdb': true,
+          'tmdbId': _0x3dd1e3,
+          'imdbID': _0x2b452d
+        });
+      } else {
+        showMovieDetails(_0x2b452d, false, _0x51e517);
+      }
     }
-  } else {
+    } else {
     if (_0x53db18 === "embedViewerView") {
       const _0x4236da = _0x1dab97.get("type");
       const _0x57ad7f = _0x1dab97.get('id');
       const _0xa44445 = _0x1dab97.get("server") || 'vidsrc';
       const _0x338b08 = _0x1dab97.get('season');
       const _0x18ac1d = _0x1dab97.get("episode");
+      const _0x4e4a0f = _0x1dab97.get('tmdb');
       currentEmbedServer = _0xa44445;
-      launchEmbed(_0x57ad7f, _0x4236da, _0xa44445, _0x338b08, _0x18ac1d);
+      if (_0x4e4a0f) {
+        currentTmdbId = _0x4e4a0f;
+      }
+      launchEmbed(_0x57ad7f, _0x4236da, _0xa44445, _0x338b08, _0x18ac1d, _0x4e4a0f ? {
+        'tmdbId': _0x4e4a0f,
+        'skipOmdb': true
+      } : null);
     } else {
-      if (_0x53db18 === "searchView") {
-        const _0x334a29 = _0x1dab97.get("query");
-        const _0x2f6568 = parseInt(_0x1dab97.get("page")) || 0x1;
-        if (_0x334a29) {
-          document.getElementById("searchInput").value = _0x334a29;
-          currentSearchKeyword = _0x334a29;
-          currentSearchPage = _0x2f6568;
-          searchMovies(_0x334a29, _0x2f6568);
+    if (_0x53db18 === "searchView") {
+      const _0x334a29 = _0x1dab97.get("query");
+      const _0x2f6568 = parseInt(_0x1dab97.get("page")) || 0x1;
+      const _0x3b0b1b = _0x1dab97.get("type") || 'all';
+      const _0x5b5c65 = _0x1dab97.get("sort") || 'new';
+      const _0x2a6ef0 = _0x1dab97.get("genre") || '';
+      if (_0x334a29) {
+        document.getElementById("searchInput").value = _0x334a29;
+        const _0x1f2b55 = document.getElementById('searchTypeFilter');
+        const _0x3f0f1d = document.getElementById('searchSortFilter');
+        if (_0x1f2b55) {
+          _0x1f2b55.value = _0x3b0b1b;
         }
+        if (_0x3f0f1d) {
+          _0x3f0f1d.value = _0x2a6ef0 ? _0x2a6ef0 : _0x5b5c65;
+        }
+        currentSearchKeyword = _0x334a29;
+        currentSearchPage = _0x2f6568;
+        searchTmdb(_0x334a29, _0x2f6568);
+      }
+    } else {
+      if (_0x53db18 === "filterView") {
+        const _0x2f6568 = parseInt(_0x1dab97.get("page")) || 0x1;
+        const _0x3b0b1b = _0x1dab97.get("type") || 'all';
+        const _0x5b5c65 = _0x1dab97.get("sort") || 'new';
+        const _0x2a6ef0 = _0x1dab97.get("genre") || '';
+        const _0x19c297 = document.getElementById("searchInput");
+        if (_0x19c297) {
+          _0x19c297.value = '';
+        }
+        const _0x1f2b55 = document.getElementById('searchTypeFilter');
+        const _0x3f0f1d = document.getElementById('searchSortFilter');
+        if (_0x1f2b55) {
+          _0x1f2b55.value = _0x3b0b1b;
+        }
+        if (_0x3f0f1d) {
+          _0x3f0f1d.value = _0x2a6ef0 ? _0x2a6ef0 : _0x5b5c65;
+        }
+        currentSearchKeyword = '';
+        currentSearchPage = _0x2f6568;
+        searchFilters(_0x2f6568);
       } else {
         switchView("homeView", false);
         setHomeTab(HOME_TAB_DEFAULT);
+      }
       }
     }
   }

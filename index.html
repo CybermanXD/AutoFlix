@@ -133,16 +133,17 @@
     }
 
     #similarResults.movie-grid {
-      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 16px;
     }
     @media (max-width: 1024px) {
       #similarResults.movie-grid {
-        grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+        grid-template-columns: repeat(2, minmax(0, 1fr));
       }
     }
     @media (max-width: 600px) {
       #similarResults.movie-grid {
-        grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+        grid-template-columns: 1fr;
       }
     }
     .movie-item {
@@ -176,7 +177,7 @@
 
     /* Section Headings */
     .section-title {
-      font-size: 1.8rem;
+      font-size: 1.5m;
       margin-bottom: 10px;
       padding-left: 5px;
        
@@ -207,7 +208,7 @@
 
     /* Detail View */
     #detailView {
-      max-width: 900px;
+      max-width: 95;
       padding: 40px 20px;
       margin: 0 auto;
     }
@@ -215,12 +216,12 @@
       width: 100%;
       max-width: 300px;
       border-radius: 4px;
-      margin: 0 auto 20px;
+      margin: 0 0 20px 0;
       display: block;
     }
 
     #similarSection {
-      margin-top: 30px;
+      
       background: #1b1b1b;
       border: 1px solid #2a2a2a;
       border-radius: 12px;
@@ -236,9 +237,19 @@
     .detail-container {
   display: flex;
   flex-wrap: wrap;
-  gap: 20px;
+  gap: 40px;
   margin-top: 20px;
-}
+ }
+
+    .detail-main {
+  flex: 3 1 520px;
+  min-width: 0;
+ }
+
+    .detail-side {
+  flex: 2 1 360px;
+  min-width: 320px;
+ }
 
 .detail-poster img {
   width: 100%;
@@ -247,13 +258,20 @@
   border-radius: 8px;
 }
 
-.detail-poster {
-  flex: 1 1 300px;
-}
+    .detail-main {
+  display: grid;
+  grid-template-columns: minmax(240px, 300px) minmax(0, 1fr);
+  gap: 24px;
+  align-items: start;
+ }
 
-.detail-info {
-  flex: 2 1 400px;
-}
+    .detail-poster {
+  align-self: start;
+ }
+
+    .detail-info {
+  min-width: 0;
+ }
 
 #detailInfo p {
   margin: 8px 0;
@@ -269,7 +287,10 @@
     }
     
     /* Episodes Section */
-    #episodesSection { margin-top: 30px; }
+    #episodesSection {
+      margin-top: 30px;
+      grid-column: 1 / -1;
+    }
     #episodesSection select {
       width: 100%;
       max-width: 200px;
@@ -280,7 +301,23 @@
       border: 1px solid #444;
       border-radius: 4px;
     }
-    #episodesSection ul { list-style: none; }
+    #episodesSection ul {
+      list-style: none;
+    }
+
+    #episodesSection ul.two-column {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+      width: 100%;
+    }
+
+    #episodesSection ul.three-column {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+      width: 100%;
+    }
     #episodesSection ul li {
       padding: 12px;
       background: #222;
@@ -315,6 +352,21 @@
       justify-content: center;
       margin-top: 30px;
       gap: 15px;
+      flex-wrap: nowrap;
+      align-items: center;
+    }
+
+    .pagination .page-buttons {
+      display: flex;
+      gap: 8px;
+      flex-wrap: nowrap;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .pagination button {
+      padding: 10px 15px;
+      font-size: 1rem;
     }
 
     .home-pagination .page-button.active {
@@ -338,6 +390,11 @@
       }
 
       .home-pagination button {
+        padding: 8px 10px;
+        font-size: 0.85rem;
+      }
+
+      .pagination button {
         padding: 8px 10px;
         font-size: 0.85rem;
       }
@@ -526,6 +583,23 @@
     width: 100%;
   }
 
+  .detail-main,
+  .detail-side {
+    width: 100%;
+  }
+
+  .detail-main {
+    grid-template-columns: 1fr;
+  }
+
+  #episodesSection ul.two-column {
+    grid-template-columns: 1fr;
+  }
+
+  #episodesSection ul.three-column {
+    grid-template-columns: 1fr;
+  }
+
   #detailPoster {
     max-width: 100%;
   }
@@ -590,6 +664,15 @@
     border-radius: 6px;
     overflow: hidden;
      
+  }
+
+  .search-filter {
+    border: 1px solid #444;
+    border-radius: 8px;
+    background: #222;
+    color: #fff;
+    padding: 10px 12px;
+    font-size: 14px;
   }
 
   #searchInput {
@@ -820,7 +903,7 @@ footer {
 <body>
   <!-- Main layout starts here -->
  
- <script src="script.js"></script>
+ <script src="script.js" defer></script>
 
   <header>
     <!-- Logo now clickable to return to homepage -->
@@ -831,6 +914,30 @@ footer {
 
   <div id="searchToggle" style="display: inline-block;">
     <div class="search-wrapper">
+      <select id="searchTypeFilter" class="search-filter" aria-label="Filter by type">
+        <option value="all" selected>All</option>
+        <option value="movies">Movies</option>
+        <option value="shows">TV Shows</option>
+        <option value="anime">Anime</option>
+      </select>
+      <select id="searchSortFilter" class="search-filter" aria-label="Filter by sort">
+        <option value="new" selected>Date (new first)</option>
+        <option value="old">Date (oldest first)</option>
+        <option value="action">Action</option>
+        <option value="adventure">Adventure</option>
+        <option value="animation">Animation</option>
+        <option value="comedy">Comedy</option>
+        <option value="drama">Drama</option>
+        <option value="fantasy">Fantasy</option>
+        <option value="sci-fi">Sci-Fi</option>
+        <option value="romance">Romance</option>
+        <option value="thriller">Thriller</option>
+        <option value="horror">Horror</option>
+        <option value="mystery">Mystery</option>
+      </select>
+      <button class="search-icon" type="button" onclick="applySearchFilters()" aria-label="Apply filters">
+        Apply
+      </button>
       <input 
         type="text" 
         id="searchInput" 
@@ -869,13 +976,13 @@ footer {
     </div>
   </div>
 
-  <!-- Search Results View -->
+  <!-- Search + Filter Results View (shared DOM for searchView/filterView states) -->
   <div id="searchView" class="view">
-     
     <h2 class="section-title" id="searchHeader">Search Results</h2>
     <div id="searchResults" class="movie-grid"></div>
     <div class="pagination">
       <button id="prevPage" onclick="changeSearchPage(-1)">Previous</button>
+      <div id="searchPageButtons" class="page-buttons"></div>
       <button id="nextPage" onclick="changeSearchPage(1)">Next</button>
     </div>
   </div>
@@ -885,40 +992,45 @@ footer {
    
 
   <!-- Two-column responsive layout -->
-  <div class="detail-container">
-    <!-- Poster (Left Column) -->
-    <div class="detail-poster">
-      <img id="detailPoster" src="" alt="Poster">
-    </div>
+   <div class="detail-container">
+     <div class="detail-main">
+       <!-- Poster (Left Column) -->
+       <div class="detail-poster">
+         <img id="detailPoster" src="" alt="Poster">
+       </div>
+ 
+       <!-- Info (Right Column) -->
+       <div id="detailInfo" class="detail-info">
+         <h2 id="detailTitle"></h2>
+         <p><strong>Genre:</strong> <span id="detailGenre"></span></p>
+         <p><strong>Year:</strong> <span id="detailYear"></span></p>
+         <p><strong>Country:</strong> <span id="detailCountry"></span></p>
+         <p><strong>Actors:</strong> <span id="detailActors"></span></p>
+         <p><strong>Synopsis:</strong> <span id="detailPlot"></span></p>
+         <p id="detailRating"></p>
+ 
+         <!-- Action buttons for movies (if not a TV series) -->
+         <div id="actionButtons"></div>
+       </div>
 
-    <!-- Info (Right Column) -->
-    <div id="detailInfo" class="detail-info">
-      <h2 id="detailTitle"></h2>
-      <p><strong>Genre:</strong> <span id="detailGenre"></span></p>
-      <p><strong>Year:</strong> <span id="detailYear"></span></p>
-      <p><strong>Country:</strong> <span id="detailCountry"></span></p>
-      <p><strong>Actors:</strong> <span id="detailActors"></span></p>
-      <p><strong>Synopsis:</strong> <span id="detailPlot"></span></p>
-      <p id="detailRating"></p>
+       <!-- Episodes Section for TV Series -->
+       <div id="episodesSection" style="display:none;">
+         <label for="seasonSelect">Select Season: </label>
+         <select id="seasonSelect" onchange="seasonChanged()"></select>
+         <ul id="episodesList"></ul>
+       </div>
+     </div>
 
-      <!-- Action buttons for movies (if not a TV series) -->
-      <div id="actionButtons"></div>
-    </div>
-  </div>
+     <aside class="detail-side">
+       <div id="similarSection">
+         <h2 class="section-title">Similar Titles</h2>
+         <div id="similarLoading" class="episode-loading" aria-hidden="true"></div>
+         <div id="similarResults" class="movie-grid"></div>
+       </div>
+     </aside>
+   </div>
 
-  <!-- Episodes Section for TV Series -->
-  <div id="episodesSection" style="display:none;">
-    <label for="seasonSelect">Select Season: </label>
-    <select id="seasonSelect" onchange="seasonChanged()"></select>
-    <ul id="episodesList"></ul>
-  </div>
-
-  <div id="similarSection">
-    <h2 class="section-title">Similar Titles</h2>
-    <div id="similarLoading" class="episode-loading" aria-hidden="true"></div>
-    <div id="similarResults" class="movie-grid"></div>
-  </div>
-</div>
+ </div>
 
 
   <!-- Embed Viewer View -->
