@@ -32,8 +32,8 @@ jobs:
           const TMDB_API_BASE = 'https://api.themoviedb.org/3';
           const TMDB_IMAGE_BASE = 'https://image.tmdb.org/t/p/w342';
           const TMDB_API_KEY = process.env.TMDB_API_KEY;
-          const PAGE_LIMIT = 30;
-          const ANIME_PAGE_LIMIT = 30;
+          const PAGE_LIMIT = 80;
+          const ANIME_PAGE_LIMIT = 80;
           const ANIME_YEAR_START = '2026-01-01';
           const ANIME_YEAR_END = '2026-12-31';
           const PAGE_SIZE = 18;
