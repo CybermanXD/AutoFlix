@@ -1,5 +1,5 @@
 const TMDB_API_KEY = "8c5107580c5a36557d7c01b6f920c344";
-const TMDB_API_BASE = "https://api.themoviedb.org/3";
+const TMDB_API_BASE = "https://tmdb-proxy-a9cp.onrender.com/tmdb";
 const TMDB_IMAGE_BASE = "https://image.tmdb.org/t/p/w342";
 const SUPABASE_LATEST_MOVIES_URL = "https://tokzbiepijjdvbdtacjz.supabase.co/storage/v1/object/public/autoflix-media-cache/latest-movies.json";
 const SUPABASE_LATEST_TV_URL = "https://tokzbiepijjdvbdtacjz.supabase.co/storage/v1/object/public/autoflix-media-cache/latest-tv.json";
