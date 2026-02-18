@@ -10,9 +10,11 @@ jobs:
     runs-on: ubuntu-latest
     env:
       TMDB_API_KEY: ${{ secrets.TMDB_API_KEY }}
-      SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
-      SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
       SUPABASE_BUCKET: autoflix-media-cache
+      SUPABASE_S3_ENDPOINT: ${{ secrets.SUPABASE_S3_ENDPOINT }}
+      AWS_ACCESS_KEY_ID: ${{ secrets.SUPABASE_S3_ACCESS_KEY }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.SUPABASE_S3_SECRET_KEY }}
+      AWS_DEFAULT_REGION: ${{ secrets.SUPABASE_S3_REGION }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -78,37 +80,5 @@ jobs:
 
       - name: Upload to Supabase Storage
         run: |
-          node <<'NODE'
-          const fs = require('fs');
-          const fetch = global.fetch;
-          const SUPABASE_URL = process.env.SUPABASE_URL;
-          const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
-          const SUPABASE_BUCKET = process.env.SUPABASE_BUCKET;
-
-          async function uploadObject(filePath, objectName) {
-            const fileData = fs.readFileSync(filePath);
-            const url = `${SUPABASE_URL}/storage/v1/object/${SUPABASE_BUCKET}/${objectName}`;
-            const res = await fetch(url, {
-              method: 'PUT',
-              headers: {
-                'Authorization': `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
-                'apikey': SUPABASE_SERVICE_ROLE_KEY,
-                'Content-Type': 'application/json',
-                'x-upsert': 'true'
-              },
-              body: fileData
-            });
-            if (!res.ok) {
-              const text = await res.text();
-              throw new Error(`Failed upload ${objectName}: ${res.status} ${text}`);
-            }
-          }
-
-          (async () => {
-            if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
-              throw new Error('Missing SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY');
-            }
-            await uploadObject('latest-movies.json', 'latest-movies.json');
-            await uploadObject('latest-tv.json', 'latest-tv.json');
-          })();
-          NODE
+          aws s3 cp latest-movies.json s3://$SUPABASE_BUCKET/latest-movies.json --endpoint-url "$SUPABASE_S3_ENDPOINT"
+          aws s3 cp latest-tv.json s3://$SUPABASE_BUCKET/latest-tv.json --endpoint-url "$SUPABASE_S3_ENDPOINT"
