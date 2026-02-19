@@ -15,6 +15,7 @@
   <!-- Use a Google Font similar to Netflix -->
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="styles.css">
   <style>
     /* Global Styles */
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -265,6 +266,10 @@
   align-items: start;
  }
 
+    .detail-synopsis {
+  grid-column: 1 / -1;
+ }
+
     .detail-poster {
   align-self: start;
  }
@@ -326,7 +331,7 @@
       transition: background 0.3s;
       cursor: pointer;
     }
-    #episodesSection ul li:hover { background: #333; }
+    #episodesSection ul li:hover { background: #650a0f; }
 
     /* Embed Viewer */
     #embedViewerView { position: relative; padding-bottom: 20px; }
@@ -432,6 +437,38 @@
       display: flex;
       gap: 20px;
       justify-content: left;
+    }
+    .episode-info {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      background: #1b1b1b;
+      border: 1px solid #2a2a2a;
+      border-radius: 10px;
+      padding: 12px;
+      width: 100%;
+      max-width: 100%;
+      color: #e6e6e6;
+      text-align: left;
+    }
+    .episode-poster {
+      width: 100%;
+      max-width: 320px;
+      border-radius: 8px;
+      object-fit: cover;
+    }
+    .episode-info-title {
+      font-weight: 600;
+      font-size: 1rem;
+    }
+    .episode-info-date {
+      font-size: 0.9rem;
+      color: #c5c5c5;
+    }
+    .episode-info-synopsis {
+      font-size: 0.9rem;
+      color: #d1d1d1;
+      line-height: 1.4;
     }
     
    
@@ -1006,6 +1043,9 @@ footer {
         <div id="homePageButtons" class="page-buttons"></div>
         <button id="homeNextPage" onclick="changeHomePage(1)">Next</button>
       </div>
+      <div class="pagination home-pagination" style="margin-top: 12px;">
+        <select id="homePageSelect" class="search-filter" style="max-width: 250px;" aria-label="Jump to page"></select>
+      </div>
     </div>
   </div>
 
@@ -1039,21 +1079,22 @@ footer {
           <p><strong>Released:</strong> <span id="detailYear"></span></p>
          <p><strong>Country:</strong> <span id="detailCountry"></span></p>
          <p><strong>Actors:</strong> <span id="detailActors"></span></p>
-         <p><strong>Synopsis:</strong> <span id="detailPlot"></span></p>
+         
          <p id="detailRating"></p>
  
          <!-- Action buttons for movies (if not a TV series) -->
          <div id="actionButtons"></div>
        </div>
 
-       <!-- Episodes Section for TV Series -->
+        <!-- Episodes Section for TV Series -->
+       <div class="detail-synopsis"><p><strong>Synopsis:</strong> <span id="detailPlot"></span></p></div>
        <div id="episodesSection" style="display:none;">
          <label for="seasonSelect">Select Season: </label>
          <select id="seasonSelect" onchange="seasonChanged()"></select>
          <ul id="episodesList"></ul>
        </div>
      </div>
-
+     
      <aside class="detail-side">
        <div id="similarSection">
          <h2 class="section-title">Similar Titles</h2>

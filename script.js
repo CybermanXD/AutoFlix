@@ -72,6 +72,20 @@ function formatReleaseText(_0x2d7be5, _0x2a1e0a) {
   }
   return 'N/A';
 }
+function formatEpisodeAirDate(_0x2c9c31) {
+  if (!_0x2c9c31) {
+    return 'N/A';
+  }
+  const _0x4a0b53 = new Date(_0x2c9c31);
+  if (isNaN(_0x4a0b53)) {
+    return 'N/A';
+  }
+  return _0x4a0b53.toLocaleDateString('en-GB', {
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric'
+  });
+}
 function normalizeGenreText(_0x2c3c8a) {
   return String(_0x2c3c8a || '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
 }
@@ -448,6 +462,7 @@ function updateHomePagination() {
   const _0x21b6d5 = document.getElementById('homePrevPage');
   const _0x2090c4 = document.getElementById('homeNextPage');
   const _0x39f7a9 = document.getElementById('homePageButtons');
+  const _0x29a0b3 = document.getElementById('homePageSelect');
   if (_0x21b6d5) {
     _0x21b6d5.disabled = currentHomePage <= 0x1;
   }
@@ -470,6 +485,24 @@ function updateHomePagination() {
       _0x5f08a6.classList.add('active');
     }
     _0x39f7a9.appendChild(_0x5f08a6);
+  }
+  if (_0x29a0b3) {
+    _0x29a0b3.innerHTML = '';
+    for (let _0x3d7ef9 = 0x1; _0x3d7ef9 <= HOME_TOTAL_PAGES; _0x3d7ef9++) {
+      const _0x20f967 = document.createElement('option');
+      _0x20f967.value = String(_0x3d7ef9);
+      _0x20f967.textContent = "Page " + _0x3d7ef9 + " of " + HOME_TOTAL_PAGES;
+      if (_0x3d7ef9 === currentHomePage) {
+        _0x20f967.selected = true;
+      }
+      _0x29a0b3.appendChild(_0x20f967);
+    }
+    _0x29a0b3.onchange = _0x46b6af => {
+      const _0x2a2b0a = Number(_0x46b6af.target.value);
+      if (!Number.isNaN(_0x2a2b0a)) {
+        goHomePage(_0x2a2b0a);
+      }
+    };
   }
 }
 
@@ -1039,6 +1072,29 @@ function showEpisodeOptions(_0x42b8b5, _0x5a8139, _0x2f1513, _0x11bc44) {
   } else {
     _0x266d12 = document.createElement("div");
     _0x266d12.className = "episode-options";
+    const _0x2f7a8b = document.createElement('div');
+    _0x2f7a8b.className = 'episode-info';
+    const _0x2f8ed1 = currentEpisodeMap ? currentEpisodeMap[String(_0x11bc44)] : null;
+    if (_0x2f8ed1 && _0x2f8ed1.still_path) {
+      const _0x145f2c = document.createElement('img');
+      _0x145f2c.className = 'episode-poster';
+      _0x145f2c.src = TMDB_IMAGE_BASE.replace('/w342', '/w500') + _0x2f8ed1.still_path;
+      _0x145f2c.alt = _0x2f8ed1.name || 'Episode Image';
+      _0x2f7a8b.appendChild(_0x145f2c);
+    }
+    const _0x2e6d46 = document.createElement('div');
+    _0x2e6d46.className = 'episode-info-title';
+    _0x2e6d46.textContent = _0x2f8ed1 && _0x2f8ed1.name ? _0x2f8ed1.name : "Episode " + _0x11bc44;
+    _0x2f7a8b.appendChild(_0x2e6d46);
+    const _0x5e3a8e = document.createElement('div');
+    _0x5e3a8e.className = 'episode-info-date';
+    _0x5e3a8e.textContent = _0x2f8ed1 && _0x2f8ed1.air_date ? formatEpisodeAirDate(_0x2f8ed1.air_date) : 'N/A';
+    _0x2f7a8b.appendChild(_0x5e3a8e);
+    const _0x1c4ed2 = document.createElement('div');
+    _0x1c4ed2.className = 'episode-info-synopsis';
+    _0x1c4ed2.textContent = _0x2f8ed1 && _0x2f8ed1.overview ? _0x2f8ed1.overview : 'Synopsis not available.';
+    _0x2f7a8b.appendChild(_0x1c4ed2);
+    _0x266d12.appendChild(_0x2f7a8b);
     let _0x2b0d88 = document.createElement("button");
     _0x2b0d88.textContent = "Watch Now";
     _0x2b0d88.onclick = function (_0x2ecb0f) {
