@@ -6,7 +6,7 @@ const SUPABASE_LATEST_TV_URL = "https://tokzbiepijjdvbdtacjz.supabase.co/storage
 const SUPABASE_LATEST_ANIME_URL = "https://tokzbiepijjdvbdtacjz.supabase.co/storage/v1/object/public/autoflix-media-cache/latest-anime.json";
 const HOME_TAB_DEFAULT = 'shows';
 const HOME_PAGE_SIZE = 0x12;
-const HOME_TOTAL_PAGES = 0xa;
+const HOME_DEFAULT_TOTAL_PAGES = 0x1;
 let latestMoviesCache = {};
 let latestShowsCache = {};
 let latestAnimeCache = {};
@@ -34,6 +34,44 @@ let isSeasonMenuOpen = false;
 let isServerMenuOpen = false;
 let movieGenresCache = null;
 let tvGenresCache = null;
+function getTotalTilesFromData(_0x4d4a6f) {
+  if (!_0x4d4a6f || !_0x4d4a6f.pages) {
+    return 0x0;
+  }
+  return Object.values(_0x4d4a6f.pages).reduce((_0x50d1d8, _0x3c1b6c) => {
+    if (!Array.isArray(_0x3c1b6c)) {
+      return _0x50d1d8;
+    }
+    return _0x50d1d8 + _0x3c1b6c.length;
+  }, 0x0);
+}
+function getHomeTotalPages() {
+  const _0x3c4b7d = currentHomeTab === 'shows' ? latestShowsData : currentHomeTab === 'anime' ? latestAnimeData : latestMoviesData;
+  const _0x47ccbe = getTotalTilesFromData(_0x3c4b7d);
+  return Math.max(HOME_DEFAULT_TOTAL_PAGES, Math.ceil(_0x47ccbe / HOME_PAGE_SIZE));
+}
+function toggleHomePageSelectMenu() {
+  const _0x3b764d = document.getElementById('homePageSelect');
+  const _0x4d2c8a = document.getElementById('homePageSelectToggle');
+  if (!_0x3b764d) {
+    return;
+  }
+  const _0x1b57a7 = _0x3b764d.classList.toggle('open');
+  if (_0x4d2c8a) {
+    _0x4d2c8a.setAttribute('aria-expanded', _0x1b57a7 ? 'true' : 'false');
+  }
+}
+function closeHomePageSelectMenu() {
+  const _0x3a2a66 = document.getElementById('homePageSelect');
+  const _0x5a1c24 = document.getElementById('homePageSelectToggle');
+  if (!_0x3a2a66) {
+    return;
+  }
+  _0x3a2a66.classList.remove('open');
+  if (_0x5a1c24) {
+    _0x5a1c24.setAttribute('aria-expanded', 'false');
+  }
+}
 const STATIC_ANIME_GENRES = [{
   'name': 'Action'
 }, {
@@ -463,18 +501,47 @@ function updateHomePagination() {
   const _0x2090c4 = document.getElementById('homeNextPage');
   const _0x39f7a9 = document.getElementById('homePageButtons');
   const _0x29a0b3 = document.getElementById('homePageSelect');
+  const _0x4217cf = document.getElementById('homePageSelectToggle');
+  const _0x4c3b64 = document.getElementById('homePageSelectMenu');
+  const _0x3b3f36 = getHomeTotalPages();
+  if (currentHomePage > _0x3b3f36) {
+    currentHomePage = _0x3b3f36;
+  }
+  if (_0x4217cf) {
+    _0x4217cf.textContent = "Page " + currentHomePage + " of " + _0x3b3f36;
+    _0x4217cf.onclick = toggleHomePageSelectMenu;
+  }
+  if (_0x4c3b64) {
+    _0x4c3b64.innerHTML = '';
+    for (let _0x3d7ef9 = 0x1; _0x3d7ef9 <= _0x3b3f36; _0x3d7ef9++) {
+      const _0x20f967 = document.createElement('button');
+      _0x20f967.type = 'button';
+      _0x20f967.className = 'home-page-select__option';
+      _0x20f967.setAttribute('role', 'option');
+      _0x20f967.setAttribute('aria-selected', _0x3d7ef9 === currentHomePage ? 'true' : 'false');
+      _0x20f967.textContent = "Page " + _0x3d7ef9 + " of " + _0x3b3f36;
+      if (_0x3d7ef9 === currentHomePage) {
+        _0x20f967.classList.add('active');
+      }
+      _0x20f967.onclick = () => {
+        goHomePage(_0x3d7ef9);
+        closeHomePageSelectMenu();
+      };
+      _0x4c3b64.appendChild(_0x20f967);
+    }
+  }
   if (_0x21b6d5) {
     _0x21b6d5.disabled = currentHomePage <= 0x1;
   }
   if (_0x2090c4) {
-    _0x2090c4.disabled = currentHomePage >= HOME_TOTAL_PAGES;
+    _0x2090c4.disabled = currentHomePage >= _0x3b3f36;
   }
   if (!_0x39f7a9) {
     return;
   }
   _0x39f7a9.innerHTML = '';
   const _0x11430e = Math.max(0x1, currentHomePage - 0x1);
-  const _0x2a6652 = Math.min(HOME_TOTAL_PAGES, _0x11430e + 0x2);
+  const _0x2a6652 = Math.min(_0x3b3f36, _0x11430e + 0x2);
   const _0x5a7f7f = _0x2a6652 - _0x11430e < 0x2 ? Math.max(0x1, _0x2a6652 - 0x2) : _0x11430e;
   for (let _0x3b3dd3 = _0x5a7f7f; _0x3b3dd3 <= _0x2a6652; _0x3b3dd3++) {
     const _0x5f08a6 = document.createElement('button');
@@ -486,23 +553,8 @@ function updateHomePagination() {
     }
     _0x39f7a9.appendChild(_0x5f08a6);
   }
-  if (_0x29a0b3) {
-    _0x29a0b3.innerHTML = '';
-    for (let _0x3d7ef9 = 0x1; _0x3d7ef9 <= HOME_TOTAL_PAGES; _0x3d7ef9++) {
-      const _0x20f967 = document.createElement('option');
-      _0x20f967.value = String(_0x3d7ef9);
-      _0x20f967.textContent = "Page " + _0x3d7ef9 + " of " + HOME_TOTAL_PAGES;
-      if (_0x3d7ef9 === currentHomePage) {
-        _0x20f967.selected = true;
-      }
-      _0x29a0b3.appendChild(_0x20f967);
-    }
-    _0x29a0b3.onchange = _0x46b6af => {
-      const _0x2a2b0a = Number(_0x46b6af.target.value);
-      if (!Number.isNaN(_0x2a2b0a)) {
-        goHomePage(_0x2a2b0a);
-      }
-    };
+  if (_0x29a0b3 && !_0x4c3b64) {
+    closeHomePageSelectMenu();
   }
 }
 
@@ -513,7 +565,8 @@ function changeHomePage(_0x1f0f6d) {
 
 function goHomePage(_0x361e31) {
   const _0x25b0a4 = Number(_0x361e31);
-  if (_0x25b0a4 < 0x1 || _0x25b0a4 > HOME_TOTAL_PAGES) {
+  const _0x2d6d8c = getHomeTotalPages();
+  if (_0x25b0a4 < 0x1 || _0x25b0a4 > _0x2d6d8c) {
     return;
   }
   currentHomePage = _0x25b0a4;
@@ -1682,6 +1735,7 @@ window.addEventListener('load', () => {
     const _0x2a3e2f = document.getElementById('episodeDropdown');
     const _0x1a2b54 = document.getElementById('seasonDropdown');
     const _0x430caa = document.getElementById('serverDropdown');
+    const _0x7a2c9e = document.getElementById('homePageSelect');
     if (_0x2a3e2f && !_0x2a3e2f.contains(_0x16786f.target)) {
       closeEpisodeMenu();
     }
@@ -1690,6 +1744,9 @@ window.addEventListener('load', () => {
     }
     if (_0x430caa && !_0x430caa.contains(_0x16786f.target)) {
       closeServerMenu();
+    }
+    if (_0x7a2c9e && !_0x7a2c9e.contains(_0x16786f.target)) {
+      closeHomePageSelectMenu();
     }
   });
   if (!_0x2cfb8b || _0x2cfb8b === "#homeView") {

@@ -63,9 +63,13 @@ nav button {
 
 /* Search Toggle placed in navbar, inline */
 #searchToggle {
-  display: none;
+
   margin-left: 2px;
   text-align: center;
+}
+
+.search-toggle-inline {
+  display: inline-block;
 }
 #searchToggle input {
   padding: 12px 45px 12px 20px;
@@ -336,7 +340,7 @@ nav button {
 .pagination {
   display: flex;
   justify-content: center;
-  margin-top: 30px;
+  margin: 30px 0px;
   gap: 15px;
   flex-wrap: nowrap;
   align-items: center;
@@ -351,7 +355,7 @@ nav button {
 }
 
 .pagination button {
-  padding: 10px 15px;
+  padding: 7px 15px;
   font-size: 1rem;
 }
 
@@ -363,11 +367,94 @@ nav button {
   flex-wrap: wrap;
 }
 
+.home-pagination--compact {
+  margin-top: 12px;
+}
+
 .home-pagination .page-buttons {
   display: flex;
   gap: 8px;
   flex-wrap: wrap;
   justify-content: center;
+}
+
+.home-page-select {
+  position: relative;
+  max-width: 250px;
+  width: 100%;
+}
+
+.home-page-select__toggle {
+  width: 100%;
+  height: 34px;
+  padding: 6px 36px 6px 14px;
+  font-size: 0.9rem;
+  line-height: 1.2;
+  background: #141414;
+  color: #fff;
+  border: 1px solid #bf0810;
+  border-radius: 10px;
+  text-align: left;
+  position: relative;
+}
+
+.home-page-select__toggle::after {
+  content: "▾";
+  position: absolute;
+  right: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #e50914;
+  font-size: 0.85rem;
+}
+
+.home-page-select.open .home-page-select__toggle {
+  border-color: #e50914;
+  box-shadow: 0 0 0 2px rgba(229, 9, 20, 0.25);
+}
+
+.home-page-select__menu {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: calc(100% + 6px);
+  max-height: 220px;
+  overflow-y: auto;
+  background: #0f0f0f;
+  border: 1px solid #2a2a2a;
+  border-radius: 10px;
+  padding: 6px;
+  display: none;
+  z-index: 20;
+}
+
+.home-page-select.open .home-page-select__menu {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.home-page-select__option {
+  background: #1b1b1b;
+  color: #fff;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: 0.88rem;
+  line-height: 1.4;
+  text-align: left;
+  display: flex;
+  align-items: center;
+}
+
+.home-page-select__option:hover {
+  background: #650a0f;
+  border-color: #bf0810;
+}
+
+.home-page-select__option.active {
+  background: #bf0810;
+  border-color: #e50914;
 }
 
 @media (max-width: 600px) {
@@ -381,7 +468,7 @@ nav button {
   }
 
   .pagination button {
-    padding: 8px 10px;
+    padding: 7px 10px;
     font-size: 0.85rem;
   }
 }
@@ -391,7 +478,7 @@ nav button {
     height: 200px;
   }
 }
-.pagination button { padding: 10px 15px; font-size: 1rem; }
+.pagination button { padding: 7px 15px; font-size: 1rem; }
 
 /* Responsive adjustments */
 @media (max-width: 599px) {
@@ -507,6 +594,13 @@ nav button {
 .custom-toggle.no-caret {
   background-image: none;
   padding-right: 20px;
+}
+
+.series-overview-icon {
+  vertical-align: top;
+  font-size: 18px;
+  line-height: 1;
+  padding-right: 3px;
 }
 
 .custom-toggle:hover {
@@ -766,6 +860,10 @@ nav button {
    
 }
 
+.embed-header-bar-visible {
+  display: block;
+}
+
 .episode-nav {
   display: flex;
   gap: 12px;
@@ -774,6 +872,10 @@ nav button {
   padding: 10px 0 0;
   position: relative;
   z-index: 20;
+}
+
+.is-hidden {
+  display: none;
 }
 
 .episode-loading {
@@ -845,7 +947,7 @@ nav button {
     padding: 6px 0 0;
   }
 
-.material-symbols-outlined {
+  .material-symbols-outlined {
     font-family: 'Material Symbols Outlined';
     font-weight: normal;
     font-style: normal;
@@ -856,15 +958,16 @@ nav button {
     display: inline-block;
     white-space: nowrap;
     word-wrap: normal;
-    direction: ltr; 
+    direction: ltr;
     -webkit-font-feature-settings: 'liga';
-    -webkit-font-smoothing: antialiased; }
+    -webkit-font-smoothing: antialiased;
+  }
 
-.watch-header-bar {
+  .watch-header-bar {
     background-color: #141414;
     color: #ffffff;
-    padding: 10px 0px;}
-
+    padding: 10px 0px;
+  }
 
   .episode-nav button,
   .episode-nav .custom-toggle {
@@ -898,17 +1001,16 @@ nav button {
   .episode-nav button.next-episode span {
     display: none;
   }
-  
-.custom-toggle {
-    padding: 12px 15px;}
 
+  .custom-toggle {
+    padding: 12px 15px;
+  }
 
   #seriesOverviewBtn {
     min-width: 165px;
     width: 165px;
     font-size: 14px;
     line-height: 1;
-     
     align-items: flex-end;
     gap: 8px;
   }
