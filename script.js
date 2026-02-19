@@ -32,6 +32,31 @@ let totalSeasonsCount = 0x0;
 let isEpisodeMenuOpen = false;
 let isSeasonMenuOpen = false;
 let isServerMenuOpen = false;
+let movieGenresCache = null;
+let tvGenresCache = null;
+const STATIC_ANIME_GENRES = [{
+  'name': 'Action'
+}, {
+  'name': 'Adventure'
+}, {
+  'name': 'Animation'
+}, {
+  'name': 'Comedy'
+}, {
+  'name': 'Drama'
+}, {
+  'name': 'Fantasy'
+}, {
+  'name': 'Sci-Fi'
+}, {
+  'name': 'Romance'
+}, {
+  'name': 'Thriller'
+}, {
+  'name': 'Horror'
+}, {
+  'name': 'Mystery'
+}];
 function formatReleaseText(_0x2d7be5, _0x2a1e0a) {
   if (_0x2d7be5) {
     const _0x12a0b4 = new Date(_0x2d7be5);
@@ -46,6 +71,117 @@ function formatReleaseText(_0x2d7be5, _0x2a1e0a) {
     return String(_0x2a1e0a);
   }
   return 'N/A';
+}
+function normalizeGenreText(_0x2c3c8a) {
+  return String(_0x2c3c8a || '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
+}
+function buildGenreOptions(_0x1b2d7a, _0x3d4d9e, _0x3c15a9 = '') {
+  if (!_0x1b2d7a) {
+    return;
+  }
+  const _0x1e6b0e = _0x3c15a9;
+  _0x1b2d7a.innerHTML = '';
+  const _0x1d2e6a = [{
+    'value': 'new',
+    'label': 'Date (new first)'
+  }, {
+    'value': 'old',
+    'label': 'Date (oldest first)'
+  }];
+  _0x1d2e6a.forEach(_0x24a4b1 => {
+    const _0x4a4aa9 = document.createElement('option');
+    _0x4a4aa9.value = _0x24a4b1.value;
+    _0x4a4aa9.textContent = _0x24a4b1.label;
+    _0x1b2d7a.appendChild(_0x4a4aa9);
+  });
+  (_0x3d4d9e || []).forEach(_0x55c1c4 => {
+    const _0x4e0426 = _0x55c1c4 && _0x55c1c4.name ? _0x55c1c4.name : String(_0x55c1c4 || '').trim();
+    if (!_0x4e0426) {
+      return;
+    }
+    const _0x4f1a7b = normalizeGenreText(_0x4e0426);
+    if (!_0x4f1a7b || _0x4f1a7b === 'new' || _0x4f1a7b === 'old') {
+      return;
+    }
+    const _0x52e4b2 = document.createElement('option');
+    _0x52e4b2.value = _0x4f1a7b;
+    _0x52e4b2.textContent = _0x4e0426;
+    _0x1b2d7a.appendChild(_0x52e4b2);
+  });
+  if (_0x1e6b0e) {
+    _0x1b2d7a.value = _0x1e6b0e;
+  }
+}
+function fetchGenresByType(_0x5d83f4) {
+  if (_0x5d83f4 === 'movie' && movieGenresCache) {
+    return Promise.resolve(movieGenresCache);
+  }
+  if (_0x5d83f4 === 'tv' && tvGenresCache) {
+    return Promise.resolve(tvGenresCache);
+  }
+  return fetch(TMDB_API_BASE + "/genre/" + _0x5d83f4 + "/list?api_key=" + TMDB_API_KEY).then(_0x1cf846 => _0x1cf846.json()).then(_0x2d9d8e => {
+    const _0x3a6e69 = _0x2d9d8e && _0x2d9d8e.genres ? _0x2d9d8e.genres : [];
+    if (_0x5d83f4 === 'movie') {
+      movieGenresCache = _0x3a6e69;
+    } else if (_0x5d83f4 === 'tv') {
+      tvGenresCache = _0x3a6e69;
+    }
+    return _0x3a6e69;
+  })['catch'](_0x5c83ff => {
+    console.error('Failed to load genres:', _0x5c83ff);
+    return [];
+  });
+}
+function updateGenreDropdownByType(_0x3b0f32 = '') {
+  const _0x1f2b55 = document.getElementById('searchTypeFilter');
+  const _0x3f0f1d = document.getElementById('searchSortFilter');
+  if (!_0x1f2b55 || !_0x3f0f1d) {
+    return;
+  }
+  const _0x12c2e8 = _0x3b0f32 || _0x3f0f1d.value;
+  const _0x5d1d27 = _0x1f2b55.value || 'all';
+  if (_0x5d1d27 === 'movies') {
+    fetchGenresByType('movie').then(_0x44e61a => buildGenreOptions(_0x3f0f1d, _0x44e61a, _0x12c2e8));
+    return;
+  }
+  if (_0x5d1d27 === 'shows') {
+    fetchGenresByType('tv').then(_0x38ee68 => buildGenreOptions(_0x3f0f1d, _0x38ee68, _0x12c2e8));
+    return;
+  }
+  if (_0x5d1d27 === 'anime') {
+    buildGenreOptions(_0x3f0f1d, STATIC_ANIME_GENRES, _0x12c2e8);
+    return;
+  }
+  Promise.all([fetchGenresByType('movie'), fetchGenresByType('tv')]).then(([_0x5e1a8f, _0x5df9a7]) => {
+    const _0x4f979b = {};
+    const _0x203fb4 = [];
+    [...(_0x5e1a8f || []), ...(_0x5df9a7 || [])].forEach(_0x2f2a20 => {
+      if (!_0x2f2a20 || !_0x2f2a20.name) {
+        return;
+      }
+      const _0x174fd5 = normalizeGenreText(_0x2f2a20.name);
+      if (_0x174fd5 && !_0x4f979b[_0x174fd5]) {
+        _0x4f979b[_0x174fd5] = true;
+        _0x203fb4.push(_0x2f2a20);
+      }
+    });
+    buildGenreOptions(_0x3f0f1d, _0x203fb4, _0x12c2e8);
+  });
+}
+function sortLatestByReleaseDate(_0x10368b = []) {
+  const _0x1f9d2d = Array.isArray(_0x10368b) ? [..._0x10368b] : [];
+  _0x1f9d2d.sort((_0x2383de, _0x4a8f5b) => {
+    const _0x2e40a6 = _0x2383de && _0x2383de.ReleaseDate ? new Date(_0x2383de.ReleaseDate) : new Date(0x0);
+    const _0x2e0ec4 = _0x4a8f5b && _0x4a8f5b.ReleaseDate ? new Date(_0x4a8f5b.ReleaseDate) : new Date(0x0);
+    if (isNaN(_0x2e40a6)) {
+      return 0x1;
+    }
+    if (isNaN(_0x2e0ec4)) {
+      return -0x1;
+    }
+    return _0x2e0ec4 - _0x2e40a6;
+  });
+  return _0x1f9d2d;
 }
 function toggleSearch() {
   const _0x11109f = document.getElementById("searchToggle");
@@ -140,6 +276,7 @@ function searchFilters(_0x3bd1a3) {
   const _0x5d1d27 = _0x1f2b55 ? _0x1f2b55.value : 'all';
   const _0x52b1a1 = _0x3f0f1d ? _0x3f0f1d.value : 'new';
   const _0x5b9a76 = _0x52b1a1 !== 'new' && _0x52b1a1 !== 'old' ? _0x52b1a1 : '';
+  const _0x2fe1a1 = normalizeGenreText(_0x5b9a76);
   const _0x2a6c30 = _0x52b1a1 === 'old' ? 'old' : 'new';
   const _0x1f2c44 = document.getElementById('searchHeader');
   if (_0x1f2c44) {
@@ -150,8 +287,8 @@ function searchFilters(_0x3bd1a3) {
   const _0x1a9c3c = () => {
     const _0x2e2a1c = _0x4b2f59.flat();
     let _0x2f3039 = _0x2e2a1c;
-    if (_0x5b9a76) {
-      _0x2f3039 = _0x2f3039.filter(_0x2f77a4 => (_0x2f77a4.Genres || '').toLowerCase().includes(_0x5b9a76));
+    if (_0x2fe1a1) {
+      _0x2f3039 = _0x2f3039.filter(_0x2f77a4 => normalizeGenreText(_0x2f77a4.Genres || '').includes(_0x2fe1a1));
     }
     _0x2f3039 = _0x2f3039.filter(_0x1b3f92 => _0x1b3f92.Title && _0x1b3f92.imdbID);
     const _0x3f0f1d = new Date().getFullYear();
@@ -370,7 +507,7 @@ function loadLatestMovies(_0x3f5c44 = 0x1) {
     return;
   }
   if (latestMoviesData && latestMoviesData.pages) {
-    latestMoviesCache[_0x3f5c44] = latestMoviesData.pages[String(_0x3f5c44)] || [];
+    latestMoviesCache[_0x3f5c44] = sortLatestByReleaseDate(latestMoviesData.pages[String(_0x3f5c44)] || []);
     renderHomeTab();
     return;
   }
@@ -381,7 +518,7 @@ function loadLatestMovies(_0x3f5c44 = 0x1) {
   fetch(SUPABASE_LATEST_MOVIES_URL).then(_0x3eb28c => _0x3eb28c.json()).then(_0x2d2d1b => {
     latestMoviesData = _0x2d2d1b;
     const _0x3a43f2 = _0x2d2d1b && _0x2d2d1b.pages ? _0x2d2d1b.pages[String(_0x3f5c44)] : [];
-    latestMoviesCache[_0x3f5c44] = _0x3a43f2 || [];
+    latestMoviesCache[_0x3f5c44] = sortLatestByReleaseDate(_0x3a43f2 || []);
     if (currentHomeTab === 'movies') {
       renderHomeTab();
     }
@@ -405,7 +542,7 @@ function loadLatestShows(_0x1c1d6d = 0x1) {
     return;
   }
   if (latestShowsData && latestShowsData.pages) {
-    latestShowsCache[_0x1c1d6d] = latestShowsData.pages[String(_0x1c1d6d)] || [];
+    latestShowsCache[_0x1c1d6d] = sortLatestByReleaseDate(latestShowsData.pages[String(_0x1c1d6d)] || []);
     renderHomeTab();
     return;
   }
@@ -416,7 +553,7 @@ function loadLatestShows(_0x1c1d6d = 0x1) {
   fetch(SUPABASE_LATEST_TV_URL).then(_0x2b6e98 => _0x2b6e98.json()).then(_0x152278 => {
     latestShowsData = _0x152278;
     const _0x4f9ed8 = _0x152278 && _0x152278.pages ? _0x152278.pages[String(_0x1c1d6d)] : [];
-    latestShowsCache[_0x1c1d6d] = _0x4f9ed8 || [];
+    latestShowsCache[_0x1c1d6d] = sortLatestByReleaseDate(_0x4f9ed8 || []);
     if (currentHomeTab === 'shows') {
       renderHomeTab();
     }
@@ -440,7 +577,7 @@ function loadLatestAnime(_0x4a0f72 = 0x1) {
     return;
   }
   if (latestAnimeData && latestAnimeData.pages) {
-    latestAnimeCache[_0x4a0f72] = latestAnimeData.pages[String(_0x4a0f72)] || [];
+    latestAnimeCache[_0x4a0f72] = sortLatestByReleaseDate(latestAnimeData.pages[String(_0x4a0f72)] || []);
     renderHomeTab();
     return;
   }
@@ -451,7 +588,7 @@ function loadLatestAnime(_0x4a0f72 = 0x1) {
   fetch(SUPABASE_LATEST_ANIME_URL).then(_0x53dfb7 => _0x53dfb7.json()).then(_0x2b4f76 => {
     latestAnimeData = _0x2b4f76;
     const _0x5801f5 = _0x2b4f76 && _0x2b4f76.pages ? _0x2b4f76.pages[String(_0x4a0f72)] : [];
-    latestAnimeCache[_0x4a0f72] = _0x5801f5 || [];
+    latestAnimeCache[_0x4a0f72] = sortLatestByReleaseDate(_0x5801f5 || []);
     if (currentHomeTab === 'anime') {
       renderHomeTab();
     }
@@ -1456,9 +1593,15 @@ function ensureIframeFullscreenPermissions(_0x1a8c1c = document) {
 window.addEventListener('load', () => {
   const _0x2cfb8b = window.location.hash;
   const _0x4dbb8a = document.getElementById('embedFrame');
+  const _0x1e71f6 = document.getElementById('searchTypeFilter');
   if (_0x4dbb8a) {
     _0x4dbb8a.addEventListener('load', () => {
       setEpisodeLoading(false);
+    });
+  }
+  if (_0x1e71f6) {
+    _0x1e71f6.addEventListener('change', () => {
+      updateGenreDropdownByType();
     });
   }
   ensureIframeFullscreenPermissions();
@@ -1547,7 +1690,7 @@ window.addEventListener('load', () => {
           _0x1f2b55.value = _0x3b0b1b;
         }
         if (_0x3f0f1d) {
-          _0x3f0f1d.value = _0x2a6ef0 ? _0x2a6ef0 : _0x5b5c65;
+          updateGenreDropdownByType(_0x2a6ef0 ? normalizeGenreText(_0x2a6ef0) : _0x5b5c65);
         }
         currentSearchKeyword = _0x334a29;
         currentSearchPage = _0x2f6568;
@@ -1569,7 +1712,7 @@ window.addEventListener('load', () => {
           _0x1f2b55.value = _0x3b0b1b;
         }
         if (_0x3f0f1d) {
-          _0x3f0f1d.value = _0x2a6ef0 ? _0x2a6ef0 : _0x5b5c65;
+          updateGenreDropdownByType(_0x2a6ef0 ? normalizeGenreText(_0x2a6ef0) : _0x5b5c65);
         }
         currentSearchKeyword = '';
         currentSearchPage = _0x2f6568;
@@ -1581,6 +1724,7 @@ window.addEventListener('load', () => {
       }
     }
   }
+  updateGenreDropdownByType();
 });
 window.addEventListener("popstate", _0x53e716 => {
   if (_0x53e716.state && _0x53e716.state.view) {

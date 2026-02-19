@@ -1,6 +1,6 @@
 # AutoFlix
 
-AutoFlix is a lightweight, Netflix-style web app for discovering movies and TV series, viewing details, and watching embedded streams with season/episode navigation.
+AutoFlix is a lightweight, Netflix-style web app for discovering movies and TV series, exploring details, and watching embedded streams with season/episode navigation.
 
 ## Live Demo
 
