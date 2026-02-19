@@ -34,14 +34,12 @@ jobs:
           const TMDB_API_KEY = process.env.TMDB_API_KEY;
           const PAGE_LIMIT = 80;
           const ANIME_PAGE_LIMIT = 80;
-          const ANIME_YEAR_START = '2026-01-01';
-          const ANIME_YEAR_END = '2026-12-31';
           const PAGE_SIZE = 18;
 
           async function mapPage(type, page) {
             let listRes;
             if (type === 'anime') {
-              listRes = await fetch(`${TMDB_API_BASE}/discover/tv?api_key=${TMDB_API_KEY}&with_genres=16&with_original_language=ja&sort_by=popularity.desc&first_air_date.gte=${ANIME_YEAR_START}&first_air_date.lte=${ANIME_YEAR_END}&page=${page}`);
+              listRes = await fetch(`${TMDB_API_BASE}/discover/tv?api_key=${TMDB_API_KEY}&with_genres=16&with_original_language=ja&vote_count.gte=50&sort_by=first_air_date.desc&page=${page}`);
             } else {
               listRes = await fetch(`${TMDB_API_BASE}/trending/${type}/week?api_key=${TMDB_API_KEY}&page=${page}`);
             }

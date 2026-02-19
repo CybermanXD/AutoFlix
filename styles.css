@@ -17,33 +17,33 @@ body {
 a { color: #e50914; text-decoration: none; }
 a:hover { text-decoration: underline; }
 button {
-  border: none;
-  outline: none;
+  border: none; 
+  outline: none; 
   cursor: pointer;
   background: #e50914;
   color: #fff;
-  padding: 10px 20px;
+  padding: 10px 20px; 
   font-size: 14px;
-  border-radius: 4px;
+  border-radius: 4px; 
   transition: background 0.3s;
 }
 button:hover { background: #f40612; }
 
 /* Header & Navigation */
-header {
-  background: #141414;
-  padding: 20px;
-  text-align: center;
-  border-bottom: 1px solid #333;
+header { 
+  background: #141414; 
+  padding: 20px; 
+  text-align: center; 
+  border-bottom: 1px solid #333; 
 }
-header h1 {
-  font-size: 2.5rem;
-  letter-spacing: 2px;
+header h1 { 
+  font-size: 2.5rem; 
+  letter-spacing: 2px; 
   cursor: pointer;
   font-family: "Fredericka the Great", serif;
 }
 nav {
-  background: #141414;
+  background: #141414; 
   padding: 15px 20px;
   display: flex;
   align-items: center;
@@ -63,7 +63,7 @@ nav button {
 
 /* Search Toggle placed in navbar, inline */
 #searchToggle {
-  display: inline-block;
+  display: none;
   margin-left: 2px;
   text-align: center;
 }
@@ -159,10 +159,10 @@ nav button {
 
 /* Section Headings */
 .section-title {
-  font-size: 1.5m;
+  font-size: 1.5rem;
   margin-bottom: 10px;
   padding-left: 5px;
-
+   
 }
 
 .tab-header {
@@ -190,7 +190,7 @@ nav button {
 
 /* Detail View */
 #detailView {
-  max-width: 95;
+  max-width: 95%;
   padding: 40px 20px;
   margin: 0 auto;
 }
@@ -203,7 +203,7 @@ nav button {
 }
 
 #similarSection {
-
+  
   background: #1b1b1b;
   border: 1px solid #2a2a2a;
   border-radius: 12px;
@@ -221,17 +221,17 @@ nav button {
   flex-wrap: wrap;
   gap: 40px;
   margin-top: 20px;
-}
+ }
 
 .detail-main {
   flex: 3 1 520px;
   min-width: 0;
-}
+ }
 
 .detail-side {
   flex: 2 1 360px;
   min-width: 320px;
-}
+ }
 
 .detail-poster img {
   width: 100%;
@@ -245,25 +245,25 @@ nav button {
   grid-template-columns: minmax(240px, 300px) minmax(0, 1fr);
   gap: 24px;
   align-items: start;
-}
+ }
 
 .detail-synopsis {
   grid-column: 1 / -1;
-}
+ }
 
 .detail-poster {
   align-self: start;
-}
+ }
 
 .detail-info {
   min-width: 0;
-}
+ }
 
 #detailInfo p {
   margin: 8px 0;
-}
+} 
 #detailInfo h2 { margin-bottom: 10px; font-size: 2rem; }
-
+ 
 /* Action buttons container now uses flex with 20px gap */
 #actionButtons {
   display: flex;
@@ -276,7 +276,6 @@ nav button {
 #episodesSection {
   margin-top: 30px;
   grid-column: 1 / -1;
-  display: none;
 }
 #episodesSection select {
   width: 100%;
@@ -327,9 +326,6 @@ nav button {
   width: 100%;
   border-radius: 10px;
 }
-#embedHeaderBar {
-  display: block;
-}
 #embedFrame {
   width: 100%;
   height: 600px;
@@ -374,14 +370,6 @@ nav button {
   justify-content: center;
 }
 
-.home-page-select-row {
-  margin-top: 12px;
-}
-
-#homePageSelect {
-  max-width: 250px;
-}
-
 @media (max-width: 600px) {
   .home-pagination {
     gap: 8px;
@@ -415,11 +403,11 @@ nav button {
   #detailView img { max-width: 100%; }
 
   #homeImageContainer {
-    padding: 10px 0px 10px 0px;
-    text-align: center;
-    max-width: 90%;
-    margin: 0 auto;
-  }
+  padding: 10px 0px 10px 0px;
+  text-align: center;
+  max-width: 90%;
+  margin: 0 auto;
+}
 
 }
 
@@ -463,6 +451,7 @@ nav button {
   color: #d1d1d1;
   line-height: 1.4;
 }
+
 
 .dropdown-wrapper {
   display: flex;
@@ -563,6 +552,8 @@ nav button {
   display: block;
 }
 
+
+
 .custom-dropdown.open .custom-menu {
   display: block;
 }
@@ -596,20 +587,6 @@ nav button {
   gap: 12px;
 }
 
-.series-overview-icon {
-  vertical-align: top;
-  font-size: 18px;
-  line-height: 1;
-  padding-right: 3px;
-}
-
-#episodeNav,
-#seasonDropdown,
-#episodeDropdown,
-#serverDropdown,
-#seriesOverviewBtn {
-  display: none;
-}
 
 /* Mobile responsiveness */
 @media (max-width: 768px) {
@@ -783,10 +760,10 @@ nav button {
   text-align: center;
   z-index: 10;
   width: 100%;
-
+   
   font-family: "Fredericka the Great", serif;
   letter-spacing: 1.2px;
-
+   
 }
 
 .episode-nav {
@@ -868,7 +845,7 @@ nav button {
     padding: 6px 0 0;
   }
 
-  .material-symbols-outlined {
+.material-symbols-outlined {
     font-family: 'Material Symbols Outlined';
     font-weight: normal;
     font-style: normal;
@@ -879,16 +856,15 @@ nav button {
     display: inline-block;
     white-space: nowrap;
     word-wrap: normal;
-    direction: ltr;
+    direction: ltr; 
     -webkit-font-feature-settings: 'liga';
-    -webkit-font-smoothing: antialiased;
-  }
+    -webkit-font-smoothing: antialiased; }
 
-  .watch-header-bar {
+.watch-header-bar {
     background-color: #141414;
     color: #ffffff;
-    padding: 10px 0px;
-  }
+    padding: 10px 0px;}
+
 
   .episode-nav button,
   .episode-nav .custom-toggle {
@@ -922,17 +898,17 @@ nav button {
   .episode-nav button.next-episode span {
     display: none;
   }
+  
+.custom-toggle {
+    padding: 12px 15px;}
 
-  .custom-toggle {
-    padding: 12px 15px;
-  }
 
   #seriesOverviewBtn {
     min-width: 165px;
     width: 165px;
     font-size: 14px;
     line-height: 1;
-
+     
     align-items: flex-end;
     gap: 8px;
   }
