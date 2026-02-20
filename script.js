@@ -7,9 +7,9 @@ const SUPABASE_LATEST_ANIME_URL = "https://tokzbiepijjdvbdtacjz.supabase.co/stor
 const HOME_TAB_DEFAULT = 'shows';
 const HOME_PAGE_SIZE = 0x12;
 const HOME_DEFAULT_TOTAL_PAGES = 0x1;
-let latestMoviesCache = {};
-let latestShowsCache = {};
-let latestAnimeCache = {};
+let latestMoviesCache = [];
+let latestShowsCache = [];
+let latestAnimeCache = [];
 let latestMoviesData = null;
 let latestShowsData = null;
 let latestAnimeData = null;
@@ -45,9 +45,15 @@ function getTotalTilesFromData(_0x4d4a6f) {
     return _0x50d1d8 + _0x3c1b6c.length;
   }, 0x0);
 }
+function getFlattenedItemsFromData(_0x15c3f9) {
+  if (!_0x15c3f9 || !_0x15c3f9.pages) {
+    return [];
+  }
+  return Object.values(_0x15c3f9.pages).flat().filter(_0x2f8e07 => _0x2f8e07 && _0x2f8e07.Title);
+}
 function getHomeTotalPages() {
-  const _0x3c4b7d = currentHomeTab === 'shows' ? latestShowsData : currentHomeTab === 'anime' ? latestAnimeData : latestMoviesData;
-  const _0x47ccbe = getTotalTilesFromData(_0x3c4b7d);
+  const _0x3c4b7d = currentHomeTab === 'shows' ? latestShowsCache : currentHomeTab === 'anime' ? latestAnimeCache : latestMoviesCache;
+  const _0x47ccbe = Array.isArray(_0x3c4b7d) ? _0x3c4b7d.length : 0x0;
   return Math.max(HOME_DEFAULT_TOTAL_PAGES, Math.ceil(_0x47ccbe / HOME_PAGE_SIZE));
 }
 function toggleHomePageSelectMenu() {
@@ -484,7 +490,10 @@ function renderHomeTab() {
     return;
   }
   setHomeLoading(false);
-  const _0x11a38a = currentHomeTab === 'shows' ? latestShowsCache[currentHomePage] : currentHomeTab === 'anime' ? latestAnimeCache[currentHomePage] : latestMoviesCache[currentHomePage];
+  const _0x2a7fe3 = currentHomeTab === 'shows' ? latestShowsCache : currentHomeTab === 'anime' ? latestAnimeCache : latestMoviesCache;
+  const _0x51c11f = (_0x2a7fe3 && _0x2a7fe3.length > 0x0) ? _0x2a7fe3 : [];
+  const _0x2a10dd = (currentHomePage - 0x1) * HOME_PAGE_SIZE;
+  const _0x11a38a = _0x51c11f.slice(_0x2a10dd, _0x2a10dd + HOME_PAGE_SIZE);
   _0x59a782.innerHTML = '';
   if (!_0x11a38a || _0x11a38a.length === 0x0) {
     _0x59a782.innerHTML = "<p>No items found.</p>";
@@ -588,12 +597,12 @@ function loadLatestMovies(_0x3f5c44 = 0x1) {
   if (!_0x1aef21) {
     return;
   }
-  if (latestMoviesCache[_0x3f5c44] && latestMoviesCache[_0x3f5c44].length > 0x0) {
+  if (latestMoviesCache && latestMoviesCache.length > 0x0) {
     renderHomeTab();
     return;
   }
   if (latestMoviesData && latestMoviesData.pages) {
-    latestMoviesCache[_0x3f5c44] = sortLatestByReleaseDate(latestMoviesData.pages[String(_0x3f5c44)] || []);
+    latestMoviesCache = sortLatestByReleaseDate(getFlattenedItemsFromData(latestMoviesData));
     renderHomeTab();
     return;
   }
@@ -603,14 +612,13 @@ function loadLatestMovies(_0x3f5c44 = 0x1) {
   }
   fetch(SUPABASE_LATEST_MOVIES_URL).then(_0x3eb28c => _0x3eb28c.json()).then(_0x2d2d1b => {
     latestMoviesData = _0x2d2d1b;
-    const _0x3a43f2 = _0x2d2d1b && _0x2d2d1b.pages ? _0x2d2d1b.pages[String(_0x3f5c44)] : [];
-    latestMoviesCache[_0x3f5c44] = sortLatestByReleaseDate(_0x3a43f2 || []);
+    latestMoviesCache = sortLatestByReleaseDate(getFlattenedItemsFromData(_0x2d2d1b));
     if (currentHomeTab === 'movies') {
       renderHomeTab();
     }
   })['catch'](_0x230f2c => {
     console.error(_0x230f2c);
-    latestMoviesCache[_0x3f5c44] = [];
+    latestMoviesCache = [];
     if (currentHomeTab === 'movies') {
       setHomeLoading(false);
       _0x1aef21.innerHTML = "<p>Error loading latest movies.</p>";
@@ -623,12 +631,12 @@ function loadLatestShows(_0x1c1d6d = 0x1) {
   if (!_0x3d76d3) {
     return;
   }
-  if (latestShowsCache[_0x1c1d6d] && latestShowsCache[_0x1c1d6d].length > 0x0) {
+  if (latestShowsCache && latestShowsCache.length > 0x0) {
     renderHomeTab();
     return;
   }
   if (latestShowsData && latestShowsData.pages) {
-    latestShowsCache[_0x1c1d6d] = sortLatestByReleaseDate(latestShowsData.pages[String(_0x1c1d6d)] || []);
+    latestShowsCache = sortLatestByReleaseDate(getFlattenedItemsFromData(latestShowsData));
     renderHomeTab();
     return;
   }
@@ -638,14 +646,13 @@ function loadLatestShows(_0x1c1d6d = 0x1) {
   }
   fetch(SUPABASE_LATEST_TV_URL).then(_0x2b6e98 => _0x2b6e98.json()).then(_0x152278 => {
     latestShowsData = _0x152278;
-    const _0x4f9ed8 = _0x152278 && _0x152278.pages ? _0x152278.pages[String(_0x1c1d6d)] : [];
-    latestShowsCache[_0x1c1d6d] = sortLatestByReleaseDate(_0x4f9ed8 || []);
+    latestShowsCache = sortLatestByReleaseDate(getFlattenedItemsFromData(_0x152278));
     if (currentHomeTab === 'shows') {
       renderHomeTab();
     }
   })['catch'](_0x5f3dd0 => {
     console.error(_0x5f3dd0);
-    latestShowsCache[_0x1c1d6d] = [];
+    latestShowsCache = [];
     if (currentHomeTab === 'shows') {
       setHomeLoading(false);
       _0x3d76d3.innerHTML = "<p>Error loading TV shows.</p>";
@@ -658,12 +665,12 @@ function loadLatestAnime(_0x4a0f72 = 0x1) {
   if (!_0x2c4f3e) {
     return;
   }
-  if (latestAnimeCache[_0x4a0f72] && latestAnimeCache[_0x4a0f72].length > 0x0) {
+  if (latestAnimeCache && latestAnimeCache.length > 0x0) {
     renderHomeTab();
     return;
   }
   if (latestAnimeData && latestAnimeData.pages) {
-    latestAnimeCache[_0x4a0f72] = sortLatestByReleaseDate(latestAnimeData.pages[String(_0x4a0f72)] || []);
+    latestAnimeCache = sortLatestByReleaseDate(getFlattenedItemsFromData(latestAnimeData));
     renderHomeTab();
     return;
   }
@@ -673,14 +680,13 @@ function loadLatestAnime(_0x4a0f72 = 0x1) {
   }
   fetch(SUPABASE_LATEST_ANIME_URL).then(_0x53dfb7 => _0x53dfb7.json()).then(_0x2b4f76 => {
     latestAnimeData = _0x2b4f76;
-    const _0x5801f5 = _0x2b4f76 && _0x2b4f76.pages ? _0x2b4f76.pages[String(_0x4a0f72)] : [];
-    latestAnimeCache[_0x4a0f72] = sortLatestByReleaseDate(_0x5801f5 || []);
+    latestAnimeCache = sortLatestByReleaseDate(getFlattenedItemsFromData(_0x2b4f76));
     if (currentHomeTab === 'anime') {
       renderHomeTab();
     }
   })['catch'](_0x4f5e0b => {
     console.error(_0x4f5e0b);
-    latestAnimeCache[_0x4a0f72] = [];
+    latestAnimeCache = [];
     if (currentHomeTab === 'anime') {
       setHomeLoading(false);
       _0x2c4f3e.innerHTML = "<p>Error loading latest anime.</p>";
