@@ -49,7 +49,21 @@ function getFlattenedItemsFromData(_0x15c3f9) {
   if (!_0x15c3f9 || !_0x15c3f9.pages) {
     return [];
   }
-  return Object.values(_0x15c3f9.pages).flat().filter(_0x2f8e07 => _0x2f8e07 && _0x2f8e07.Title);
+  const _0x3b2fd3 = new Date();
+  const _0x5e74b9 = new Date(_0x3b2fd3.getFullYear(), _0x3b2fd3.getMonth(), _0x3b2fd3.getDate());
+  return Object.values(_0x15c3f9.pages).flat().filter(_0x2f8e07 => {
+    if (!_0x2f8e07 || !_0x2f8e07.Title) {
+      return false;
+    }
+    if (!_0x2f8e07.ReleaseDate) {
+      return true;
+    }
+    const _0x58ef31 = new Date(_0x2f8e07.ReleaseDate);
+    if (isNaN(_0x58ef31)) {
+      return true;
+    }
+    return _0x58ef31 <= _0x5e74b9;
+  });
 }
 function getHomeTotalPages() {
   const _0x3c4b7d = currentHomeTab === 'shows' ? latestShowsCache : currentHomeTab === 'anime' ? latestAnimeCache : latestMoviesCache;
