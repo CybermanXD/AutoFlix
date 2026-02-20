@@ -35,6 +35,7 @@ jobs:
           const PAGE_LIMIT = 80;
           const ANIME_PAGE_LIMIT = 80;
           const PAGE_SIZE = 18;
+          const LIST_FETCH_SIZE = 40;
 
           async function mapPage(type, page) {
             let listRes;
@@ -46,7 +47,7 @@ jobs:
             const listJson = await listRes.json();
             if (!listJson || !listJson.results) return [];
             const filteredResults = type === 'tv' ? listJson.results.filter(item => !(item && Array.isArray(item.genre_ids) && item.genre_ids.includes(16))) : listJson.results;
-            const results = filteredResults.slice(0, PAGE_SIZE);
+            const results = filteredResults.slice(0, LIST_FETCH_SIZE);
             const mapped = await Promise.all(results.map(async (item) => {
               const id = item.id;
               const detailType = type === 'anime' ? 'tv' : type;
@@ -69,7 +70,7 @@ jobs:
                 useTmdb: type === 'anime'
               };
             }));
-            return mapped.filter(Boolean);
+            return mapped.filter(Boolean).slice(0, PAGE_SIZE);
           }
 
           async function buildPayload(type) {
