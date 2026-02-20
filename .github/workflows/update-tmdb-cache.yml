@@ -45,7 +45,8 @@ jobs:
             }
             const listJson = await listRes.json();
             if (!listJson || !listJson.results) return [];
-            const results = listJson.results.slice(0, PAGE_SIZE);
+            const filteredResults = type === 'tv' ? listJson.results.filter(item => !(item && Array.isArray(item.genre_ids) && item.genre_ids.includes(16))) : listJson.results;
+            const results = filteredResults.slice(0, PAGE_SIZE);
             const mapped = await Promise.all(results.map(async (item) => {
               const id = item.id;
               const detailType = type === 'anime' ? 'tv' : type;
